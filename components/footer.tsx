@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import {
-  Facebook,
-  Twitter,
+  Facebook, roomy ug
+  Twitter, roomy ug
   Instagram,
-  Linkedin,
+  Linkedin, roomy ug
   Mail,
   Phone,
   MapPin,
