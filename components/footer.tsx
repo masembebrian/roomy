@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import {
-  Facebook, roomy ug
-  Twitter, roomy ug
+  Facebook,
+  Twitter,
   Instagram,
-  Linkedin, roomy ug
+  Linkedin,
   Mail,
   Phone,
   MapPin,
@@ -79,7 +79,7 @@ const features = [
   },
 ]
 
-export default function Footer() {
+function Footer() {
   return (
     <footer className="bg-gray-50 border-t">
       {/* Newsletter Section */}
@@ -276,3 +276,5 @@ export default function Footer() {
     </footer>
   )
 }
+
+export { Footer }
