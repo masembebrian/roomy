@@ -1,141 +1,272 @@
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+"use client"
+
+import Header from "@/components/header"
+import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   Shield,
   CheckCircle,
-  AlertTriangle,
   Phone,
-  Users,
-  Lock,
+  AlertTriangle,
   Eye,
-  Heart,
+  CreditCard,
+  MessageCircle,
+  Home,
+  Clock,
   FileText,
-  MessageSquare,
+  Download,
+  Play,
+  Star,
+  Lock,
+  Camera,
+  Headphones,
 } from "lucide-react"
 
 const safetyFeatures = [
   {
     icon: Shield,
-    title: "Verified Hosts & Guests",
-    description: "All users must verify their identity with government ID and phone number before booking or hosting.",
+    title: "Identity Verification",
+    description: "All users undergo identity verification to ensure authenticity",
+    features: [
+      "Government ID verification",
+      "Phone number confirmation",
+      "Email address verification",
+      "Social media account linking",
+      "Background checks for hosts",
+      "Ongoing monitoring systems",
+    ],
   },
   {
-    icon: Lock,
+    icon: CreditCard,
     title: "Secure Payments",
-    description:
-      "Your payment information is encrypted and never shared. We hold payments until 24 hours after check-in.",
+    description: "Your financial information is protected with industry-leading security",
+    features: [
+      "Encrypted payment processing",
+      "PCI DSS compliance",
+      "Secure payment holding",
+      "Fraud detection systems",
+      "Chargeback protection",
+      "Multiple payment options",
+    ],
   },
   {
     icon: Eye,
-    title: "Property Verification",
-    description: "Our team verifies property photos and details to ensure accuracy and authenticity.",
+    title: "24/7 Monitoring",
+    description: "Round-the-clock monitoring to detect and prevent issues",
+    features: [
+      "AI-powered risk detection",
+      "Real-time safety alerts",
+      "Proactive intervention",
+      "Community reporting system",
+      "Rapid response protocols",
+      "Continuous platform monitoring",
+    ],
   },
   {
-    icon: Users,
-    title: "Community Reviews",
-    description: "Read honest reviews from previous guests and hosts to make informed decisions.",
-  },
-  {
-    icon: Phone,
-    title: "24/7 Support",
-    description: "Our safety team is available around the clock to help with any concerns or emergencies.",
-  },
-  {
-    icon: Heart,
-    title: "Host Protection",
-    description: "Comprehensive insurance coverage protects hosts against property damage and liability.",
+    icon: Headphones,
+    title: "Emergency Support",
+    description: "Immediate assistance when you need it most",
+    features: [
+      "24/7 emergency hotline",
+      "Multilingual support team",
+      "Local emergency contacts",
+      "Crisis intervention protocols",
+      "Alternative accommodation assistance",
+      "Law enforcement coordination",
+    ],
   },
 ]
 
-const safetyTips = {
-  guests: [
-    {
-      title: "Before You Book",
-      tips: [
-        "Read the entire listing description and house rules carefully",
-        "Check recent reviews from other guests",
-        "Verify the host's profile and response rate",
-        "Communicate through Roomy's messaging system",
-        "Never send money outside of the Roomy platform",
-      ],
-    },
-    {
-      title: "During Your Stay",
-      tips: [
-        "Follow all house rules and local laws",
-        "Treat the property with respect",
-        "Report any safety concerns immediately",
-        "Keep emergency contact information handy",
-        "Document any pre-existing damage with photos",
-      ],
-    },
-    {
-      title: "After Your Stay",
-      tips: [
-        "Leave an honest review for future guests",
-        "Report any issues to our support team",
-        "Return keys and leave the property as you found it",
-        "Contact us if you have any billing questions",
-      ],
-    },
-  ],
-  hosts: [
-    {
-      title: "Preparing Your Space",
-      tips: [
-        "Install smoke and carbon monoxide detectors",
-        "Provide clear emergency exit information",
-        "Secure valuable items and personal belongings",
-        "Ensure all appliances are in working order",
-        "Provide accurate photos and descriptions",
-      ],
-    },
-    {
-      title: "Screening Guests",
-      tips: [
-        "Read guest profiles and reviews carefully",
-        "Communicate clearly about house rules",
-        "Ask questions if you have concerns",
-        "Trust your instincts about potential guests",
-        "Use Roomy's messaging system for all communication",
-      ],
-    },
-    {
-      title: "During the Stay",
-      tips: [
-        "Be available for guest questions and concerns",
-        "Respect guest privacy and space",
-        "Address any issues promptly and professionally",
-        "Document any property damage immediately",
-        "Contact support for serious problems",
-      ],
-    },
-  ],
-}
+const trustIndicators = [
+  {
+    badge: "Verified Host",
+    description: "Host has completed identity verification and property inspection",
+    icon: CheckCircle,
+    color: "text-green-600",
+  },
+  {
+    badge: "Superhost",
+    description: "Exceptional host with outstanding reviews and response rates",
+    icon: Star,
+    color: "text-yellow-600",
+  },
+  {
+    badge: "Instant Book",
+    description: "Property can be booked immediately without host approval",
+    icon: Clock,
+    color: "text-blue-600",
+  },
+  {
+    badge: "Professional Host",
+    description: "Host manages multiple properties with professional standards",
+    icon: Home,
+    color: "text-purple-600",
+  },
+  {
+    badge: "Secure Property",
+    description: "Property has enhanced security features and protocols",
+    icon: Lock,
+    color: "text-red-600",
+  },
+  {
+    badge: "Photo Verified",
+    description: "Property photos have been verified to match actual conditions",
+    icon: Camera,
+    color: "text-indigo-600",
+  },
+]
+
+const guestSafetyTips = [
+  {
+    category: "Before Booking",
+    tips: [
+      "Read all reviews carefully, especially recent ones",
+      "Check the host's verification status and response rate",
+      "Review the property's safety features and amenities",
+      "Understand the cancellation policy before booking",
+      "Verify the exact location and neighborhood safety",
+      "Contact the host with any questions before booking",
+    ],
+  },
+  {
+    category: "During Your Stay",
+    tips: [
+      "Keep your booking confirmation and host contact info handy",
+      "Document the property condition upon arrival",
+      "Follow all house rules and local regulations",
+      "Keep emergency contacts easily accessible",
+      "Report any safety concerns immediately",
+      "Maintain communication with the host as needed",
+    ],
+  },
+  {
+    category: "Communication",
+    tips: [
+      "Keep all communication within the Roomy platform",
+      "Never share personal financial information",
+      "Be respectful and clear in all communications",
+      "Report inappropriate behavior immediately",
+      "Save important messages and confirmations",
+      "Use the platform's messaging system for documentation",
+    ],
+  },
+]
+
+const hostSafetyTips = [
+  {
+    category: "Property Preparation",
+    tips: [
+      "Install smoke and carbon monoxide detectors",
+      "Provide clear emergency exit information",
+      "Ensure all locks and security systems work properly",
+      "Remove or secure valuable personal items",
+      "Provide emergency contact information",
+      "Maintain property insurance coverage",
+    ],
+  },
+  {
+    category: "Guest Screening",
+    tips: [
+      "Review guest profiles and reviews before accepting",
+      "Communicate clearly about house rules and expectations",
+      "Verify guest identity through the platform",
+      "Set clear check-in and check-out procedures",
+      "Document property condition before and after stays",
+      "Trust your instincts about potential guests",
+    ],
+  },
+  {
+    category: "During Hosting",
+    tips: [
+      "Be responsive to guest communications",
+      "Respect guest privacy while being available for help",
+      "Address any issues promptly and professionally",
+      "Keep detailed records of all interactions",
+      "Report any concerning behavior to Roomy",
+      "Follow up after checkout to ensure satisfaction",
+    ],
+  },
+]
 
 const emergencyContacts = [
   {
-    service: "Roomy Emergency Line",
-    number: "+256 700 123 456",
-    available: "24/7",
-  },
-  {
-    service: "Uganda Police",
+    service: "Police Emergency",
     number: "999",
-    available: "24/7",
+    description: "For immediate police assistance and criminal emergencies",
   },
   {
     service: "Medical Emergency",
     number: "911",
-    available: "24/7",
+    description: "For medical emergencies and ambulance services",
   },
   {
     service: "Fire Department",
     number: "999",
-    available: "24/7",
+    description: "For fire emergencies and rescue services",
+  },
+  {
+    service: "Tourist Police",
+    number: "+256 414 344 016",
+    description: "Specialized police unit for tourist-related issues",
+  },
+  {
+    service: "Roomy Emergency Line",
+    number: "+256 700 123 456",
+    description: "24/7 emergency support for Roomy users",
+  },
+  {
+    service: "Uganda Red Cross",
+    number: "+256 414 258 701",
+    description: "Emergency assistance and disaster response",
+  },
+]
+
+const safetyResources = [
+  {
+    title: "Safety Guidelines PDF",
+    description: "Comprehensive safety guide for guests and hosts",
+    type: "PDF",
+    size: "2.5 MB",
+    downloads: 15420,
+  },
+  {
+    title: "Emergency Procedures Video",
+    description: "What to do in case of emergencies during your stay",
+    type: "Video",
+    duration: "8 min",
+    views: 8750,
+  },
+  {
+    title: "Property Safety Checklist",
+    description: "Essential safety items every property should have",
+    type: "PDF",
+    size: "1.2 MB",
+    downloads: 12300,
+  },
+  {
+    title: "Communication Best Practices",
+    description: "How to communicate safely on the platform",
+    type: "Article",
+    readTime: "5 min",
+    views: 9800,
+  },
+  {
+    title: "Neighborhood Safety Guide",
+    description: "Tips for staying safe in different areas of Uganda",
+    type: "PDF",
+    size: "3.1 MB",
+    downloads: 7650,
+  },
+  {
+    title: "Host Safety Training",
+    description: "Complete safety training course for hosts",
+    type: "Video Course",
+    duration: "45 min",
+    completions: 5200,
   },
 ]
 
@@ -154,25 +285,69 @@ export default function SafetyPage() {
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Your Safety is Our Priority</h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            We're committed to creating a safe and secure platform for all our users. Learn about our safety measures
-            and best practices.
+            Learn about our comprehensive safety measures, get important safety tips, and access emergency resources to
+            ensure a secure experience on Roomy.
           </p>
         </div>
+
+        {/* Emergency Alert */}
+        <Alert className="mb-12 border-red-200 bg-red-50">
+          <AlertTriangle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">
+            <strong>Emergency Hotline:</strong> If you're experiencing a safety emergency, call our 24/7 emergency line
+            at <strong>+256 700 123 456</strong> or contact local emergency services at <strong>999</strong>.
+          </AlertDescription>
+        </Alert>
 
         {/* Safety Features */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8">How We Keep You Safe</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {safetyFeatures.map((feature, index) => (
-              <Card key={index} className="text-center">
+              <Card key={index}>
                 <CardHeader>
-                  <div className="bg-primary/10 p-3 rounded-full w-fit mx-auto mb-4">
-                    <feature.icon className="w-8 h-8 text-primary" />
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary/10 p-2 rounded-full">
+                      <feature.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl">{feature.title}</CardTitle>
+                      <CardDescription>{feature.description}</CardDescription>
+                    </div>
                   </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-base">{feature.description}</CardDescription>
+                  <ul className="space-y-2">
+                    {feature.features.map((item, itemIndex) => (
+                      <li key={itemIndex} className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Trust Indicators */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-8">Trust & Safety Badges</h2>
+          <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Look for these badges when booking to identify verified, trusted hosts and properties
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {trustIndicators.map((indicator, index) => (
+              <Card key={index}>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <indicator.icon className={`w-6 h-6 ${indicator.color}`} />
+                    <Badge variant="outline" className="font-medium">
+                      {indicator.badge}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{indicator.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -182,28 +357,24 @@ export default function SafetyPage() {
         {/* Safety Tips */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8">Safety Tips</h2>
+          <Tabs defaultValue="guests" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="guests">For Guests</TabsTrigger>
+              <TabsTrigger value="hosts">For Hosts</TabsTrigger>
+            </TabsList>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Guest Tips */}
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="bg-blue-100 p-2 rounded-full">
-                  <Users className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="text-2xl font-bold">For Guests</h3>
-              </div>
-
-              <div className="space-y-6">
-                {safetyTips.guests.map((section, index) => (
+            <TabsContent value="guests" className="mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {guestSafetyTips.map((category, index) => (
                   <Card key={index}>
                     <CardHeader>
-                      <CardTitle className="text-lg">{section.title}</CardTitle>
+                      <CardTitle className="text-lg">{category.category}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ul className="space-y-2">
-                        {section.tips.map((tip, tipIndex) => (
+                      <ul className="space-y-3">
+                        {category.tips.map((tip, tipIndex) => (
                           <li key={tipIndex} className="flex items-start gap-2">
-                            <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                            <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                             <span className="text-sm">{tip}</span>
                           </li>
                         ))}
@@ -212,28 +383,20 @@ export default function SafetyPage() {
                   </Card>
                 ))}
               </div>
-            </div>
+            </TabsContent>
 
-            {/* Host Tips */}
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="bg-green-100 p-2 rounded-full">
-                  <Heart className="w-6 h-6 text-green-600" />
-                </div>
-                <h3 className="text-2xl font-bold">For Hosts</h3>
-              </div>
-
-              <div className="space-y-6">
-                {safetyTips.hosts.map((section, index) => (
+            <TabsContent value="hosts" className="mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {hostSafetyTips.map((category, index) => (
                   <Card key={index}>
                     <CardHeader>
-                      <CardTitle className="text-lg">{section.title}</CardTitle>
+                      <CardTitle className="text-lg">{category.category}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ul className="space-y-2">
-                        {section.tips.map((tip, tipIndex) => (
+                      <ul className="space-y-3">
+                        {category.tips.map((tip, tipIndex) => (
                           <li key={tipIndex} className="flex items-start gap-2">
-                            <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                            <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                             <span className="text-sm">{tip}</span>
                           </li>
                         ))}
@@ -242,113 +405,105 @@ export default function SafetyPage() {
                   </Card>
                 ))}
               </div>
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Emergency Contacts */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8">Emergency Contacts</h2>
-          <Card className="bg-red-50 border-red-200">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
-                <CardTitle className="text-red-800">Important Emergency Numbers</CardTitle>
-              </div>
-              <CardDescription className="text-red-700">
-                Save these numbers and keep them accessible during your stay
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {emergencyContacts.map((contact, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-white rounded-lg border">
-                    <div>
-                      <div className="font-semibold">{contact.service}</div>
-                      <div className="text-2xl font-bold text-red-600">{contact.number}</div>
-                    </div>
-                    <Badge variant="outline" className="text-green-600 border-green-600">
-                      {contact.available}
-                    </Badge>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {emergencyContacts.map((contact, index) => (
+              <Card key={index}>
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <h3 className="font-semibold text-lg mb-2">{contact.service}</h3>
+                    <div className="text-3xl font-bold text-primary mb-3">{contact.number}</div>
+                    <p className="text-sm text-muted-foreground">{contact.description}</p>
+                    <Button className="w-full mt-4 bg-transparent" variant="outline">
+                      <Phone className="w-4 h-4 mr-2" />
+                      Call Now
+                    </Button>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Reporting Issues */}
-        <div className="mb-16">
-          <Card className="bg-primary text-primary-foreground">
-            <CardContent className="text-center py-12">
-              <MessageSquare className="w-16 h-16 mx-auto mb-6 opacity-90" />
-              <h2 className="text-3xl font-bold mb-4">Report Safety Concerns</h2>
-              <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-                If you encounter any safety issues or have concerns about a listing or user, please report it
-                immediately. We take all reports seriously and investigate promptly.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button variant="secondary" size="lg">
-                  <AlertTriangle className="w-5 h-5 mr-2" />
-                  Report an Issue
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
-                >
-                  <Phone className="w-5 h-5 mr-2" />
-                  Emergency Contact
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Additional Resources */}
-        <div>
-          <h2 className="text-3xl font-bold text-center mb-8">Additional Safety Resources</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <FileText className="w-8 h-8 text-primary mb-2" />
-                <CardTitle>Safety Guidelines</CardTitle>
-                <CardDescription>Comprehensive safety guidelines for hosts and guests</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="outline" className="w-full bg-transparent">
-                  Read Guidelines
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <Shield className="w-8 h-8 text-primary mb-2" />
-                <CardTitle>Insurance Coverage</CardTitle>
-                <CardDescription>Learn about our host protection and guest coverage</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="outline" className="w-full bg-transparent">
-                  View Coverage
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <Users className="w-8 h-8 text-primary mb-2" />
-                <CardTitle>Community Standards</CardTitle>
-                <CardDescription>Our community guidelines and standards</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button variant="outline" className="w-full bg-transparent">
-                  Read Standards
-                </Button>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
+
+        {/* Safety Resources */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-8">Safety Resources</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {safetyResources.map((resource, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg line-clamp-2">{resource.title}</CardTitle>
+                    <Badge variant="outline">{resource.type}</Badge>
+                  </div>
+                  <CardDescription className="line-clamp-2">{resource.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+                    {resource.size && <span>Size: {resource.size}</span>}
+                    {resource.duration && <span>Duration: {resource.duration}</span>}
+                    {resource.readTime && <span>Read time: {resource.readTime}</span>}
+                    <span>
+                      {resource.downloads && `${resource.downloads} downloads`}
+                      {resource.views && `${resource.views} views`}
+                      {resource.completions && `${resource.completions} completed`}
+                    </span>
+                  </div>
+                  <Button className="w-full">
+                    {resource.type === "Video" || resource.type === "Video Course" ? (
+                      <>
+                        <Play className="w-4 h-4 mr-2" />
+                        Watch
+                      </>
+                    ) : resource.type === "PDF" ? (
+                      <>
+                        <Download className="w-4 h-4 mr-2" />
+                        Download
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="w-4 h-4 mr-2" />
+                        Read
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Report Safety Concerns */}
+        <Card className="bg-orange-50 border-orange-200">
+          <CardContent className="text-center py-12">
+            <AlertTriangle className="w-16 h-16 mx-auto mb-6 text-orange-600" />
+            <h2 className="text-3xl font-bold mb-4 text-orange-800">Report Safety Concerns</h2>
+            <p className="text-lg mb-8 text-orange-700 max-w-2xl mx-auto">
+              If you encounter any safety issues or have concerns about a property or host, report it immediately. We
+              take all safety reports seriously and investigate promptly.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" className="bg-orange-600 hover:bg-orange-700">
+                <AlertTriangle className="w-5 h-5 mr-2" />
+                Report Safety Issue
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-orange-600 text-orange-600 hover:bg-orange-600 hover:text-white bg-transparent"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                Contact Safety Team
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </main>
 
       <Footer />

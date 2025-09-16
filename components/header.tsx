@@ -54,7 +54,7 @@ const mockNotifications: Notification[] = [
   },
 ]
 
-export default function Header() {
+function Header() {
   const { user, signOut } = useAuth()
   const { setTheme, theme } = useTheme()
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
@@ -294,3 +294,6 @@ export default function Header() {
     </header>
   )
 }
+
+export default Header
+export { Header }
