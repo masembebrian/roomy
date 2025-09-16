@@ -1,16 +1,17 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
+import { Input } from "@/components/ui/input"
+import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Footer from "@/components/footer"
 import {
   Users,
   Gift,
   Share2,
   DollarSign,
-  Heart,
   Star,
+  Trophy,
   Copy,
   Mail,
   MessageSquare,
@@ -18,26 +19,34 @@ import {
   Twitter,
   Instagram,
   CheckCircle,
+  Crown,
+  Zap,
 } from "lucide-react"
 
 const referralBenefits = [
   {
+    title: "You Get UGX 50,000",
+    description: "Earn credits when your friend completes their first booking",
     icon: DollarSign,
-    title: "UGX 50,000 Travel Credit",
-    description: "You get UGX 50,000 credit when your friend completes their first booking",
-    forUser: "For You",
+    color: "text-green-600",
   },
   {
+    title: "Your Friend Gets UGX 25,000",
+    description: "They receive a welcome bonus for joining through your invitation",
     icon: Gift,
-    title: "UGX 25,000 Welcome Bonus",
-    description: "Your friend gets UGX 25,000 off their first booking of UGX 100,000 or more",
-    forUser: "For Your Friend",
+    color: "text-blue-600",
   },
   {
-    icon: Star,
-    title: "VIP Status",
-    description: "Refer 10 friends and unlock VIP status with exclusive perks and priority support",
-    forUser: "Bonus Reward",
+    title: "Unlimited Invites",
+    description: "No limit on how many friends you can invite and earn from",
+    icon: Users,
+    color: "text-purple-600",
+  },
+  {
+    title: "VIP Status Available",
+    description: "Invite 10+ friends to unlock exclusive VIP benefits",
+    icon: Crown,
+    color: "text-yellow-600",
   },
 ]
 
@@ -51,20 +60,63 @@ const howItWorks = [
   {
     step: 2,
     title: "Friend Signs Up",
-    description: "Your friend creates a Roomy account using your referral link",
+    description: "Your friend creates an account using your referral link",
     icon: Users,
   },
   {
     step: 3,
-    title: "First Booking",
-    description: "Your friend completes their first booking of UGX 100,000 or more",
+    title: "First Booking Made",
+    description: "Your friend completes their first booking on Roomy",
     icon: CheckCircle,
   },
   {
     step: 4,
     title: "Both Get Rewards",
-    description: "You both receive your credits within 24 hours of the completed stay",
+    description: "You both receive credits automatically added to your accounts",
     icon: Gift,
+  },
+]
+
+const vipBenefits = [
+  {
+    title: "Priority Customer Support",
+    description: "Skip the queue with dedicated VIP support line",
+    icon: Zap,
+  },
+  {
+    title: "Exclusive Property Access",
+    description: "Early access to new premium listings",
+    icon: Star,
+  },
+  {
+    title: "Higher Referral Bonuses",
+    description: "Earn UGX 75,000 per successful referral",
+    icon: DollarSign,
+  },
+  {
+    title: "VIP Events & Experiences",
+    description: "Invitations to exclusive Roomy events",
+    icon: Trophy,
+  },
+  {
+    title: "Personal Account Manager",
+    description: "Dedicated support for all your needs",
+    icon: Users,
+  },
+  {
+    title: "Special Discounts",
+    description: "Additional 15% off all bookings",
+    icon: Gift,
+  },
+  {
+    title: "Beta Feature Access",
+    description: "First to try new platform features",
+    icon: Zap,
+  },
+  {
+    title: "Annual VIP Gift Package",
+    description: "Exclusive Roomy merchandise and vouchers",
+    icon: Crown,
   },
 ]
 
@@ -72,73 +124,106 @@ const sharingOptions = [
   {
     platform: "Email",
     icon: Mail,
-    description: "Send personalized invitations via email",
-    color: "bg-blue-100 text-blue-600",
+    color: "bg-gray-100 text-gray-600 hover:bg-gray-200",
+    description: "Send personalized invitations",
   },
   {
     platform: "WhatsApp",
     icon: MessageSquare,
-    description: "Share with friends on WhatsApp",
-    color: "bg-green-100 text-green-600",
+    color: "bg-green-100 text-green-600 hover:bg-green-200",
+    description: "Share with contacts instantly",
   },
   {
     platform: "Facebook",
     icon: Facebook,
-    description: "Post on your Facebook timeline",
-    color: "bg-blue-100 text-blue-600",
+    color: "bg-blue-100 text-blue-600 hover:bg-blue-200",
+    description: "Post to your timeline",
   },
   {
     platform: "Twitter",
     icon: Twitter,
+    color: "bg-sky-100 text-sky-600 hover:bg-sky-200",
     description: "Tweet to your followers",
-    color: "bg-sky-100 text-sky-600",
   },
   {
     platform: "Instagram",
     icon: Instagram,
-    description: "Share on your Instagram story",
-    color: "bg-pink-100 text-pink-600",
+    color: "bg-pink-100 text-pink-600 hover:bg-pink-200",
+    description: "Share in your stories",
   },
   {
     platform: "Copy Link",
     icon: Copy,
-    description: "Copy link to share anywhere",
-    color: "bg-gray-100 text-gray-600",
+    color: "bg-purple-100 text-purple-600 hover:bg-purple-200",
+    description: "Copy to share anywhere",
   },
 ]
 
-const referralStats = [
+// Mock user data - in real app this would come from API
+const userStats = {
+  totalInvites: 23,
+  successfulReferrals: 8,
+  creditsEarned: 400000,
+  currentLevel: "Gold Member",
+  progressToVIP: 80, // 8 out of 10 needed for VIP
+}
+
+const recentActivity = [
   {
-    label: "Friends Invited",
-    value: "0",
-    description: "Total friends you've invited",
+    friend: "Sarah Nakato",
+    action: "Signed up",
+    date: "2 days ago",
+    status: "pending",
+    reward: "Pending first booking",
   },
   {
-    label: "Successful Referrals",
-    value: "0",
-    description: "Friends who completed their first booking",
+    friend: "David Okello",
+    action: "Completed first booking",
+    date: "1 week ago",
+    status: "completed",
+    reward: "UGX 50,000 earned",
   },
   {
-    label: "Credits Earned",
-    value: "UGX 0",
-    description: "Total referral credits earned",
+    friend: "Grace Atim",
+    action: "Completed first booking",
+    date: "2 weeks ago",
+    status: "completed",
+    reward: "UGX 50,000 earned",
   },
   {
-    label: "Credits Available",
-    value: "UGX 0",
-    description: "Available credits to use",
+    friend: "John Mukasa",
+    action: "Signed up",
+    date: "3 weeks ago",
+    status: "pending",
+    reward: "Pending first booking",
   },
 ]
 
-const vipPerks = [
-  "Priority customer support",
-  "Exclusive property previews",
-  "Special VIP-only discounts",
-  "Free property upgrades when available",
-  "Dedicated VIP concierge service",
-  "Early access to new features",
-  "VIP member events and experiences",
-  "Flexible cancellation policies",
+const testimonials = [
+  {
+    name: "Mary Nambi",
+    referrals: 15,
+    earnings: "UGX 750,000",
+    quote:
+      "I've earned enough from referrals to fund my own travels! It's amazing how sharing something you love can be so rewarding.",
+    image: "/placeholder.svg?height=60&width=60&text=Mary",
+  },
+  {
+    name: "Peter Ssali",
+    referrals: 12,
+    earnings: "UGX 600,000",
+    quote:
+      "My friends were looking for authentic travel experiences anyway. Now we all benefit from using Roomy together!",
+    image: "/placeholder.svg?height=60&width=60&text=Peter",
+  },
+  {
+    name: "Rose Nakato",
+    referrals: 20,
+    earnings: "UGX 1,000,000",
+    quote:
+      "Being a VIP member has completely changed my travel experience. The exclusive access and support are incredible.",
+    image: "/placeholder.svg?height=60&width=60&text=Rose",
+  },
 ]
 
 export default function InvitePage() {
@@ -154,232 +239,328 @@ export default function InvitePage() {
               <Users className="w-16 h-16 text-green-600" />
             </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Invite Friends & Earn Rewards</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Invite Friends & Earn</h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Share the joy of travel with your friends and family. When they book their first stay, you both get
-            rewarded!
+            Share the joy of authentic travel with your friends and earn rewards together. The more you share, the more
+            you earn!
           </p>
         </div>
 
-        {/* Referral Benefits */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Referral Benefits</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {referralBenefits.map((benefit, index) => (
-              <Card key={index} className="text-center relative overflow-hidden">
-                <div className="absolute top-4 right-4">
-                  <Badge
-                    variant={
-                      benefit.forUser === "For You"
-                        ? "default"
-                        : benefit.forUser === "For Your Friend"
-                          ? "secondary"
-                          : "outline"
-                    }
-                  >
-                    {benefit.forUser}
-                  </Badge>
+        {/* Benefits Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          {referralBenefits.map((benefit, index) => (
+            <Card key={index} className="text-center">
+              <CardContent className="p-6">
+                <div className="bg-primary/10 p-3 rounded-full w-fit mx-auto mb-4">
+                  <benefit.icon className={`w-8 h-8 ${benefit.color}`} />
                 </div>
-                <CardContent className="p-8">
-                  <div className="bg-primary/10 p-4 rounded-full w-fit mx-auto mb-6">
-                    <benefit.icon className="w-12 h-12 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-4">{benefit.title}</h3>
-                  <p className="text-muted-foreground">{benefit.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                <h3 className="font-semibold mb-2">{benefit.title}</h3>
+                <p className="text-sm text-muted-foreground">{benefit.description}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* Your Referral Stats */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Your Referral Dashboard</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {referralStats.map((stat, index) => (
-              <Card key={index} className="text-center">
-                <CardContent className="p-6">
-                  <div className="text-3xl font-bold text-primary mb-2">{stat.value}</div>
-                  <div className="font-semibold mb-1">{stat.label}</div>
-                  <p className="text-sm text-muted-foreground">{stat.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="dashboard" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
+            <TabsTrigger value="dashboard">My Dashboard</TabsTrigger>
+            <TabsTrigger value="invite">Invite Friends</TabsTrigger>
+            <TabsTrigger value="vip">VIP Program</TabsTrigger>
+            <TabsTrigger value="terms">Terms</TabsTrigger>
+          </TabsList>
 
-        {/* Share Your Link */}
-        <div className="mb-16">
-          <Card>
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Share Your Referral Link</CardTitle>
-              <CardDescription>Copy your unique link or share directly on social media</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Referral Link */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Your Referral Link</label>
-                <div className="flex gap-2">
-                  <Input value={referralLink} readOnly className="font-mono text-sm" />
-                  <Button variant="outline">
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy
-                  </Button>
-                </div>
+          {/* Dashboard Tab */}
+          <TabsContent value="dashboard">
+            <div className="space-y-8">
+              {/* Stats Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <div className="text-3xl font-bold text-primary mb-2">{userStats.totalInvites}</div>
+                    <div className="text-sm text-muted-foreground">Total Invites Sent</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <div className="text-3xl font-bold text-green-600 mb-2">{userStats.successfulReferrals}</div>
+                    <div className="text-sm text-muted-foreground">Successful Referrals</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <div className="text-3xl font-bold text-blue-600 mb-2">
+                      UGX {userStats.creditsEarned.toLocaleString()}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Credits Earned</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <div className="text-lg font-bold text-yellow-600 mb-2">{userStats.currentLevel}</div>
+                    <div className="text-sm text-muted-foreground">Current Status</div>
+                  </CardContent>
+                </Card>
               </div>
 
-              <Separator />
+              {/* VIP Progress */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Crown className="w-5 h-5 text-yellow-600" />
+                    VIP Status Progress
+                  </CardTitle>
+                  <CardDescription>
+                    You need {10 - userStats.successfulReferrals} more successful referrals to unlock VIP status
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Progress to VIP</span>
+                      <span>{userStats.successfulReferrals}/10</span>
+                    </div>
+                    <Progress value={userStats.progressToVIP} className="h-3" />
+                  </div>
+                </CardContent>
+              </Card>
 
-              {/* Sharing Options */}
-              <div>
-                <h3 className="font-semibold mb-4">Share on Social Media</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  {sharingOptions.map((option, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      className="h-auto p-4 flex flex-col items-center gap-2 bg-transparent"
-                    >
-                      <div className={`p-2 rounded-full ${option.color}`}>
-                        <option.icon className="w-5 h-5" />
+              {/* Recent Activity */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Referral Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {recentActivity.map((activity, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="font-medium">{activity.friend}</div>
+                          <div className="text-sm text-muted-foreground">{activity.action}</div>
+                          <div className="text-xs text-muted-foreground">{activity.date}</div>
+                        </div>
+                        <div className="text-right">
+                          <Badge
+                            variant={activity.status === "completed" ? "default" : "secondary"}
+                            className={
+                              activity.status === "completed"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }
+                          >
+                            {activity.status === "completed" ? "Completed" : "Pending"}
+                          </Badge>
+                          <div className="text-sm text-muted-foreground mt-1">{activity.reward}</div>
+                        </div>
                       </div>
-                      <span className="text-xs font-medium">{option.platform}</span>
-                    </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Invite Tab */}
+          <TabsContent value="invite">
+            <div className="space-y-8">
+              {/* How It Works */}
+              <div>
+                <h2 className="text-2xl font-bold text-center mb-8">How It Works</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {howItWorks.map((step, index) => (
+                    <Card key={index} className="text-center relative">
+                      <CardContent className="p-6">
+                        <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mx-auto mb-4">
+                          {step.step}
+                        </div>
+                        <div className="bg-primary/10 p-3 rounded-full w-fit mx-auto mb-4">
+                          <step.icon className="w-8 h-8 text-primary" />
+                        </div>
+                        <h3 className="font-semibold mb-2">{step.title}</h3>
+                        <p className="text-sm text-muted-foreground">{step.description}</p>
+                      </CardContent>
+                      {index < howItWorks.length - 1 && (
+                        <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2">
+                          <div className="w-6 h-0.5 bg-primary/30"></div>
+                        </div>
+                      )}
+                    </Card>
                   ))}
                 </div>
               </div>
 
-              <Separator />
-
-              {/* Email Invitations */}
-              <div>
-                <h3 className="font-semibold mb-4">Send Email Invitations</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Friend's Email Addresses</label>
-                    <Input placeholder="Enter email addresses separated by commas" />
+              {/* Referral Link */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Your Referral Link</CardTitle>
+                  <CardDescription>Share this link with friends to start earning rewards</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-2">
+                    <Input value={referralLink} readOnly className="flex-1" />
+                    <Button>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy
+                    </Button>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Personal Message (Optional)</label>
-                    <Input placeholder="Add a personal message to your invitation" />
-                  </div>
-                  <Button className="w-full md:w-auto">
-                    <Mail className="w-4 h-4 mr-2" />
-                    Send Invitations
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* How It Works */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">How It Works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {howItWorks.map((step, index) => (
-              <Card key={index} className="text-center relative">
-                <CardContent className="p-6">
-                  <div className="bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mx-auto mb-4">
-                    {step.step}
-                  </div>
-                  <div className="bg-primary/10 p-3 rounded-full w-fit mx-auto mb-4">
-                    <step.icon className="w-8 h-8 text-primary" />
-                  </div>
-                  <h3 className="font-semibold mb-2">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground">{step.description}</p>
                 </CardContent>
-                {index < howItWorks.length - 1 && (
-                  <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2">
-                    <div className="w-6 h-0.5 bg-primary/30"></div>
-                  </div>
-                )}
               </Card>
-            ))}
-          </div>
-        </div>
 
-        {/* VIP Status */}
-        <div className="mb-16">
-          <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
-            <CardHeader className="text-center">
-              <div className="flex justify-center mb-4">
-                <div className="bg-purple-100 p-3 rounded-full">
-                  <Star className="w-12 h-12 text-purple-600" />
-                </div>
-              </div>
-              <CardTitle className="text-2xl text-purple-800">Unlock VIP Status</CardTitle>
-              <CardDescription className="text-purple-600">
-                Refer 10 friends and enjoy exclusive VIP benefits
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-6">
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Progress to VIP Status</span>
-                  <span>0 / 10 referrals</span>
-                </div>
-                <div className="w-full bg-purple-200 rounded-full h-2">
-                  <div className="bg-purple-600 h-2 rounded-full" style={{ width: "0%" }}></div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {vipPerks.map((perk, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-purple-600 flex-shrink-0" />
-                    <span className="text-sm text-purple-800">{perk}</span>
+              {/* Sharing Options */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Share Your Link</CardTitle>
+                  <CardDescription>Choose how you want to share your referral link</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {sharingOptions.map((option, index) => (
+                      <Button key={index} variant="outline" className={`h-20 flex-col gap-2 ${option.color}`}>
+                        <option.icon className="w-6 h-6" />
+                        <div className="text-center">
+                          <div className="font-medium text-sm">{option.platform}</div>
+                          <div className="text-xs opacity-75">{option.description}</div>
+                        </div>
+                      </Button>
+                    ))}
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Success Stories */}
+              <div>
+                <h2 className="text-2xl font-bold text-center mb-8">Success Stories</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {testimonials.map((testimonial, index) => (
+                    <Card key={index}>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-4 mb-4">
+                          <img
+                            src={testimonial.image || "/placeholder.svg"}
+                            alt={testimonial.name}
+                            className="w-12 h-12 rounded-full object-cover"
+                          />
+                          <div>
+                            <h3 className="font-semibold">{testimonial.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {testimonial.referrals} referrals • {testimonial.earnings} earned
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground italic">"{testimonial.quote}"</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* VIP Program Tab */}
+          <TabsContent value="vip">
+            <div className="space-y-8">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold mb-4">VIP Program Benefits</h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Unlock exclusive benefits when you successfully refer 10 or more friends to Roomy. Enjoy premium perks
+                  and enhanced rewards.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {vipBenefits.map((benefit, index) => (
+                  <Card key={index} className="text-center">
+                    <CardContent className="p-6">
+                      <div className="bg-yellow-100 p-3 rounded-full w-fit mx-auto mb-4">
+                        <benefit.icon className="w-6 h-6 text-yellow-600" />
+                      </div>
+                      <h3 className="font-semibold mb-2">{benefit.title}</h3>
+                      <p className="text-sm text-muted-foreground">{benefit.description}</p>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* Terms and Conditions */}
-        <Card className="mb-16">
-          <CardHeader>
-            <CardTitle>Referral Program Terms</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm text-muted-foreground">
-            <ul className="space-y-2">
-              <li>• Referral credits are awarded after your friend completes their first stay (not just booking)</li>
-              <li>• Minimum booking value of UGX 100,000 required for referral rewards</li>
-              <li>• Credits expire 12 months after being awarded</li>
-              <li>• Credits cannot be transferred or exchanged for cash</li>
-              <li>• Self-referrals and fake accounts are prohibited and will result in account suspension</li>
-              <li>• Roomy reserves the right to modify or terminate the referral program at any time</li>
-              <li>• Credits may take up to 24 hours to appear in your account after qualifying stay</li>
-              <li>• VIP status benefits are subject to availability and may change</li>
-            </ul>
-          </CardContent>
-        </Card>
-
-        {/* CTA Section */}
-        <Card className="bg-primary text-primary-foreground">
-          <CardContent className="text-center py-12">
-            <Heart className="w-16 h-16 mx-auto mb-6 opacity-90" />
-            <h2 className="text-3xl font-bold mb-4">Start Sharing Today</h2>
-            <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-              The more friends you invite, the more you earn. Help your friends discover amazing places to stay while
-              earning rewards for yourself.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="secondary" size="lg">
-                <Share2 className="w-5 h-5 mr-2" />
-                Share Your Link
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
-              >
-                <Mail className="w-5 h-5 mr-2" />
-                Send Email Invites
-              </Button>
+              <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
+                <CardContent className="text-center py-12">
+                  <Crown className="w-16 h-16 mx-auto mb-6 text-yellow-600" />
+                  <h2 className="text-3xl font-bold mb-4 text-yellow-800">Ready to Become VIP?</h2>
+                  <p className="text-lg mb-8 text-yellow-700 max-w-2xl mx-auto">
+                    You're only {10 - userStats.successfulReferrals} successful referrals away from unlocking VIP status
+                    and all these exclusive benefits.
+                  </p>
+                  <Button className="bg-yellow-600 hover:bg-yellow-700">
+                    <Share2 className="w-5 h-5 mr-2" />
+                    Start Inviting Friends
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+          </TabsContent>
+
+          {/* Terms Tab */}
+          <TabsContent value="terms">
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-2xl font-bold mb-4">Referral Program Terms & Conditions</h2>
+                <div className="prose max-w-none">
+                  <Card>
+                    <CardContent className="p-6 space-y-4">
+                      <div>
+                        <h3 className="font-semibold mb-2">Eligibility</h3>
+                        <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                          <li>Must have an active Roomy account in good standing</li>
+                          <li>Referrals must be new users who haven't previously used Roomy</li>
+                          <li>Self-referrals and fake accounts are prohibited</li>
+                          <li>Program available to users 18 years and older</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h3 className="font-semibold mb-2">Reward Structure</h3>
+                        <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                          <li>Referrer receives UGX 50,000 credit after friend's first completed booking</li>
+                          <li>New user receives UGX 25,000 welcome credit upon signup</li>
+                          <li>VIP members earn UGX 75,000 per successful referral</li>
+                          <li>Credits expire 12 months after being awarded</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h3 className="font-semibold mb-2">VIP Program</h3>
+                        <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                          <li>VIP status achieved after 10 successful referrals</li>
+                          <li>VIP benefits are reviewed annually and subject to change</li>
+                          <li>VIP status may be revoked for policy violations</li>
+                          <li>VIP benefits are non-transferable</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h3 className="font-semibold mb-2">General Terms</h3>
+                        <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                          <li>Roomy reserves the right to modify or terminate the program at any time</li>
+                          <li>Fraudulent activity will result in account suspension</li>
+                          <li>Credits cannot be exchanged for cash</li>
+                          <li>Program subject to applicable laws and regulations</li>
+                          <li>Disputes will be resolved according to Roomy's standard terms of service</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h3 className="font-semibold mb-2">Contact</h3>
+                        <p className="text-sm text-muted-foreground">
+                          For questions about the referral program, contact us at{" "}
+                          <span className="font-medium">referrals@roomy.ug</span> or call +256 700 123 456.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
 
       <Footer />

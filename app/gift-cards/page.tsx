@@ -1,12 +1,28 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import Footer from "@/components/footer"
-import { Gift, Heart, Calendar, Mail, CreditCard, Users, Star, CheckCircle, MapPin } from "lucide-react"
+import {
+  Gift,
+  Heart,
+  Calendar,
+  Mail,
+  CreditCard,
+  MapPin,
+  Star,
+  Clock,
+  CheckCircle,
+  Users,
+  Home,
+  Plane,
+  Camera,
+} from "lucide-react"
 
-const giftCardAmounts = [
+const giftAmounts = [
   { value: 50000, label: "UGX 50,000", popular: false },
   { value: 100000, label: "UGX 100,000", popular: true },
   { value: 200000, label: "UGX 200,000", popular: false },
@@ -15,87 +31,119 @@ const giftCardAmounts = [
 ]
 
 const occasions = [
-  { value: "birthday", label: "Birthday", icon: "🎂" },
-  { value: "wedding", label: "Wedding", icon: "💒" },
-  { value: "graduation", label: "Graduation", icon: "🎓" },
-  { value: "anniversary", label: "Anniversary", icon: "💕" },
-  { value: "holiday", label: "Holiday", icon: "🎄" },
-  { value: "thank-you", label: "Thank You", icon: "🙏" },
-  { value: "congratulations", label: "Congratulations", icon: "🎉" },
-  { value: "just-because", label: "Just Because", icon: "💝" },
+  { id: "birthday", label: "Birthday", icon: Gift, color: "bg-pink-100 text-pink-600" },
+  { id: "wedding", label: "Wedding", icon: Heart, color: "bg-red-100 text-red-600" },
+  { id: "graduation", label: "Graduation", icon: Users, color: "bg-blue-100 text-blue-600" },
+  { id: "anniversary", label: "Anniversary", icon: Calendar, color: "bg-purple-100 text-purple-600" },
+  { id: "holiday", label: "Holiday", icon: Star, color: "bg-green-100 text-green-600" },
+  { id: "general", label: "Just Because", icon: Heart, color: "bg-yellow-100 text-yellow-600" },
 ]
 
-const features = [
+const giftCardFeatures = [
   {
-    icon: CheckCircle,
     title: "Never Expires",
-    description: "Roomy gift cards never expire, so recipients can use them whenever they're ready to travel",
+    description: "Gift cards remain valid indefinitely with no expiration date",
+    icon: Clock,
   },
   {
-    icon: MapPin,
     title: "Use Anywhere",
-    description: "Valid for any accommodation on Roomy across Uganda and future international destinations",
+    description: "Valid for any accommodation or experience on Roomy platform",
+    icon: MapPin,
   },
   {
-    icon: Users,
-    title: "Flexible Recipients",
-    description: "Can be used by the recipient or transferred to family and friends",
-  },
-  {
+    title: "Flexible Amounts",
+    description: "Choose any amount or let recipient add funds if needed",
     icon: CreditCard,
-    title: "Easy to Redeem",
-    description: "Simple redemption process during checkout with unique gift card code",
+  },
+  {
+    title: "Easy Redemption",
+    description: "Simple redemption process with unique gift card code",
+    icon: CheckCircle,
   },
 ]
 
 const popularDestinations = [
   {
-    name: "Kampala City",
-    description: "Urban adventures and cultural experiences",
-    averagePrice: "UGX 80,000/night",
-    image: "/placeholder.svg?height=200&width=300&text=Kampala+City",
+    name: "Kampala City Apartments",
+    price: "From UGX 80,000/night",
+    image: "/placeholder.svg?height=200&width=300&text=Kampala+Apartments",
+    rating: 4.8,
+    reviews: 245,
   },
   {
-    name: "Entebbe",
-    description: "Lakeside relaxation and airport convenience",
-    averagePrice: "UGX 120,000/night",
-    image: "/placeholder.svg?height=200&width=300&text=Entebbe+Lakeside",
+    name: "Jinja Adventure Lodges",
+    price: "From UGX 120,000/night",
+    image: "/placeholder.svg?height=200&width=300&text=Jinja+Lodges",
+    rating: 4.9,
+    reviews: 189,
   },
   {
-    name: "Jinja",
-    description: "Adventure sports and Nile River activities",
-    averagePrice: "UGX 100,000/night",
-    image: "/placeholder.svg?height=200&width=300&text=Jinja+Adventure",
+    name: "Entebbe Lakeside Villas",
+    price: "From UGX 150,000/night",
+    image: "/placeholder.svg?height=200&width=300&text=Entebbe+Villas",
+    rating: 4.7,
+    reviews: 156,
   },
   {
-    name: "Murchison Falls",
-    description: "Safari experiences and wildlife viewing",
-    averagePrice: "UGX 250,000/night",
-    image: "/placeholder.svg?height=200&width=300&text=Murchison+Safari",
+    name: "Murchison Safari Camps",
+    price: "From UGX 200,000/night",
+    image: "/placeholder.svg?height=200&width=300&text=Safari+Camps",
+    rating: 4.9,
+    reviews: 98,
   },
 ]
 
 const testimonials = [
   {
     name: "Sarah Nakato",
-    location: "Kampala",
-    message:
-      "Gave my daughter a Roomy gift card for her graduation. She used it for a wonderful weekend in Jinja with her friends. Perfect gift!",
-    rating: 5,
+    occasion: "Wedding Gift",
+    amount: "UGX 500,000",
+    quote:
+      "Gave this to my sister for her honeymoon. She and her husband had the most amazing time exploring Uganda's hidden gems. Perfect gift!",
+    image: "/placeholder.svg?height=60&width=60&text=Sarah",
   },
   {
     name: "David Okello",
-    location: "Entebbe",
-    message:
-      "Received a gift card from my colleagues for my wedding. We used it for our honeymoon in Murchison Falls. Amazing experience!",
-    rating: 5,
+    occasion: "Birthday Surprise",
+    amount: "UGX 200,000",
+    quote:
+      "My daughter was thrilled with her birthday gift card. She used it for a weekend getaway with friends. The flexibility was perfect.",
+    image: "/placeholder.svg?height=60&width=60&text=David",
   },
   {
     name: "Grace Atim",
-    location: "Gulu",
-    message:
-      "Love how easy it was to purchase and send. My sister was so surprised and had a great time exploring Kampala!",
-    rating: 5,
+    occasion: "Graduation Gift",
+    amount: "UGX 300,000",
+    quote:
+      "Bought this for my nephew's graduation. He's been wanting to travel more, and this gave him the perfect opportunity to explore.",
+    image: "/placeholder.svg?height=60&width=60&text=Grace",
+  },
+]
+
+const faqItems = [
+  {
+    question: "How long are gift cards valid?",
+    answer: "Roomy gift cards never expire! Recipients can use them whenever they're ready to travel.",
+  },
+  {
+    question: "Can gift cards be used for any booking?",
+    answer: "Yes, gift cards can be used for any accommodation or experience available on the Roomy platform.",
+  },
+  {
+    question: "What if the booking costs more than the gift card amount?",
+    answer: "Recipients can easily pay the difference using any accepted payment method during checkout.",
+  },
+  {
+    question: "Can I send a gift card to someone in another country?",
+    answer: "Yes, gift cards can be sent via email to anyone, anywhere in the world.",
+  },
+  {
+    question: "Is it possible to refund a gift card?",
+    answer: "Gift cards are non-refundable once purchased, but they never expire so can always be used later.",
+  },
+  {
+    question: "Can multiple gift cards be used for one booking?",
+    answer: "Yes, recipients can combine multiple gift cards and use them together for larger bookings.",
   },
 ]
 
@@ -110,55 +158,87 @@ export default function GiftCardsPage() {
               <Gift className="w-16 h-16 text-pink-600" />
             </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Give the Gift of Travel</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Gift Cards</h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Share unforgettable experiences with Roomy gift cards. Perfect for any occasion, redeemable anywhere on our
-            platform.
+            Give the gift of authentic travel experiences. Perfect for any occasion, our gift cards let your loved ones
+            discover Uganda's hidden gems.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-          {/* Gift Card Purchase Form */}
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Gift Card Creator */}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl">Create Your Gift Card</CardTitle>
-                <CardDescription>Design a personalized gift card for your loved ones</CardDescription>
+                <CardDescription>Customize the perfect gift for your loved ones</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Amount Selection */}
                 <div>
-                  <label className="text-sm font-medium mb-3 block">Select Amount *</label>
+                  <Label className="text-base font-semibold mb-4 block">Choose Amount</Label>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {giftCardAmounts.map((amount) => (
-                      <Card key={amount.value} className="cursor-pointer hover:shadow-md transition-shadow relative">
-                        {amount.popular && (
-                          <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
-                            Most Popular
-                          </Badge>
-                        )}
-                        <CardContent className="p-4 text-center">
-                          <div className="text-lg font-bold">{amount.label}</div>
-                        </CardContent>
-                      </Card>
+                    {giftAmounts.map((amount) => (
+                      <div key={amount.value} className="relative">
+                        <input
+                          type="radio"
+                          id={`amount-${amount.value}`}
+                          name="amount"
+                          value={amount.value}
+                          className="peer sr-only"
+                        />
+                        <label
+                          htmlFor={`amount-${amount.value}`}
+                          className="flex items-center justify-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-primary peer-checked:border-primary peer-checked:bg-primary/5 relative"
+                        >
+                          {amount.popular && (
+                            <Badge className="absolute -top-2 -right-2 bg-primary text-primary-foreground">
+                              Popular
+                            </Badge>
+                          )}
+                          <span className="font-semibold">{amount.label}</span>
+                        </label>
+                      </div>
                     ))}
                   </div>
                   <div className="mt-3">
-                    <Input placeholder="Or enter custom amount (min UGX 25,000)" />
+                    <Label htmlFor="custom-amount" className="text-sm text-muted-foreground">
+                      Or enter custom amount:
+                    </Label>
+                    <Input
+                      id="custom-amount"
+                      placeholder="Enter amount in UGX"
+                      className="mt-1"
+                      type="number"
+                      min="10000"
+                    />
                   </div>
                 </div>
 
-                {/* Occasion */}
+                {/* Occasion Selection */}
                 <div>
-                  <label className="text-sm font-medium mb-3 block">Occasion</label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <Label className="text-base font-semibold mb-4 block">Select Occasion</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {occasions.map((occasion) => (
-                      <Card key={occasion.value} className="cursor-pointer hover:shadow-md transition-shadow">
-                        <CardContent className="p-3 text-center">
-                          <div className="text-2xl mb-1">{occasion.icon}</div>
-                          <div className="text-sm font-medium">{occasion.label}</div>
-                        </CardContent>
-                      </Card>
+                      <div key={occasion.id} className="relative">
+                        <input
+                          type="radio"
+                          id={`occasion-${occasion.id}`}
+                          name="occasion"
+                          value={occasion.id}
+                          className="peer sr-only"
+                        />
+                        <label
+                          htmlFor={`occasion-${occasion.id}`}
+                          className="flex flex-col items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-primary peer-checked:border-primary peer-checked:bg-primary/5"
+                        >
+                          <div className={`p-2 rounded-full ${occasion.color} mb-2`}>
+                            <occasion.icon className="w-5 h-5" />
+                          </div>
+                          <span className="text-sm font-medium">{occasion.label}</span>
+                        </label>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -166,75 +246,60 @@ export default function GiftCardsPage() {
                 {/* Recipient Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Recipient's Name *</label>
-                    <Input placeholder="Enter recipient's full name" />
+                    <Label htmlFor="recipient-name">Recipient Name</Label>
+                    <Input id="recipient-name" placeholder="Enter recipient's name" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Recipient's Email *</label>
-                    <Input type="email" placeholder="recipient@example.com" />
+                    <Label htmlFor="recipient-email">Recipient Email</Label>
+                    <Input id="recipient-email" type="email" placeholder="Enter recipient's email" />
                   </div>
                 </div>
 
                 {/* Sender Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Your Name *</label>
-                    <Input placeholder="Enter your full name" />
+                    <Label htmlFor="sender-name">Your Name</Label>
+                    <Input id="sender-name" placeholder="Enter your name" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Your Email *</label>
-                    <Input type="email" placeholder="your@example.com" />
+                    <Label htmlFor="sender-email">Your Email</Label>
+                    <Input id="sender-email" type="email" placeholder="Enter your email" />
                   </div>
                 </div>
 
                 {/* Personal Message */}
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Personal Message</label>
-                  <Textarea placeholder="Write a personal message to your recipient (optional)" rows={4} />
+                  <Label htmlFor="message">Personal Message (Optional)</Label>
+                  <Textarea
+                    id="message"
+                    placeholder="Write a personal message to the recipient..."
+                    className="min-h-[100px]"
+                  />
                 </div>
 
                 {/* Delivery Options */}
                 <div>
-                  <label className="text-sm font-medium mb-3 block">Delivery Options</label>
-                  <div className="space-y-3">
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <Mail className="w-5 h-5 text-primary" />
-                          <div>
-                            <div className="font-medium">Send Now via Email</div>
-                            <div className="text-sm text-muted-foreground">
-                              Recipient receives gift card immediately
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <Calendar className="w-5 h-5 text-primary" />
-                          <div className="flex-1">
-                            <div className="font-medium">Schedule Delivery</div>
-                            <div className="text-sm text-muted-foreground">Choose when to send the gift card</div>
-                          </div>
-                          <Input type="date" className="w-auto" />
-                        </div>
-                      </CardContent>
-                    </Card>
+                  <Label className="text-base font-semibold mb-4 block">Delivery Options</Label>
+                  <RadioGroup defaultValue="immediate">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="immediate" id="immediate" />
+                      <Label htmlFor="immediate">Send immediately</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="scheduled" id="scheduled" />
+                      <Label htmlFor="scheduled">Schedule for later</Label>
+                    </div>
+                  </RadioGroup>
+                  <div className="mt-2">
+                    <Input type="datetime-local" className="w-full md:w-auto" />
                   </div>
                 </div>
 
                 {/* Purchase Button */}
-                <div className="pt-4">
-                  <Button className="w-full" size="lg">
-                    <CreditCard className="w-5 h-5 mr-2" />
-                    Purchase Gift Card
-                  </Button>
-                  <p className="text-xs text-muted-foreground mt-2 text-center">
-                    Secure payment processing. Gift cards are delivered instantly via email.
-                  </p>
-                </div>
+                <Button className="w-full" size="lg">
+                  <CreditCard className="w-5 h-5 mr-2" />
+                  Purchase Gift Card
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -247,34 +312,32 @@ export default function GiftCardsPage() {
               </CardHeader>
               <CardContent>
                 <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-6 rounded-lg mb-4">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <div className="text-2xl font-bold">Roomy</div>
-                      <div className="text-sm opacity-90">Gift Card</div>
-                    </div>
-                    <Gift className="w-8 h-8 opacity-90" />
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-lg font-bold">Roomy Gift Card</div>
+                    <Gift className="w-6 h-6" />
                   </div>
-                  <div className="text-3xl font-bold mb-2">UGX 100,000</div>
-                  <div className="text-sm opacity-90 mb-4">To: Recipient Name</div>
-                  <div className="text-xs opacity-75">"Happy Birthday! Enjoy your travels!"</div>
+                  <div className="text-2xl font-bold mb-2">UGX 100,000</div>
+                  <div className="text-sm opacity-90 mb-4">For: John Doe</div>
+                  <div className="text-sm opacity-90 mb-4">From: Jane Smith</div>
+                  <div className="text-xs opacity-75">"Wishing you amazing adventures and unforgettable memories!"</div>
                   <div className="mt-4 pt-4 border-t border-primary-foreground/20">
                     <div className="text-xs opacity-75">Gift Card Code</div>
                     <div className="font-mono text-sm">ROOMY-XXXX-XXXX</div>
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  This is a preview. The actual gift card will be customized with your details.
-                </div>
+                <p className="text-sm text-muted-foreground text-center">
+                  This preview will update as you customize your gift card above.
+                </p>
               </CardContent>
             </Card>
           </div>
         </div>
 
-        {/* Features */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Why Choose Roomy Gift Cards</h2>
+        {/* Features Section */}
+        <div className="mt-16 mb-16">
+          <h2 className="text-3xl font-bold text-center mb-8">Why Choose Roomy Gift Cards?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, index) => (
+            {giftCardFeatures.map((feature, index) => (
               <Card key={index} className="text-center">
                 <CardContent className="p-6">
                   <div className="bg-primary/10 p-3 rounded-full w-fit mx-auto mb-4">
@@ -292,7 +355,7 @@ export default function GiftCardsPage() {
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8">Popular Destinations</h2>
           <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Your gift card recipients can choose from these amazing destinations and many more
+            Your gift card can be used at any of these amazing destinations and thousands more across Uganda.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {popularDestinations.map((destination, index) => (
@@ -306,30 +369,11 @@ export default function GiftCardsPage() {
                 </div>
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-1">{destination.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{destination.description}</p>
-                  <div className="text-sm font-medium text-primary">{destination.averagePrice}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Testimonials */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">What Our Customers Say</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index}>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-1 mb-3">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-muted-foreground mb-4 italic">"{testimonial.message}"</p>
-                  <div>
-                    <div className="font-semibold">{testimonial.name}</div>
-                    <div className="text-sm text-muted-foreground">{testimonial.location}</div>
+                  <p className="text-sm text-primary font-medium mb-2">{destination.price}</p>
+                  <div className="flex items-center gap-1">
+                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    <span className="text-sm font-medium">{destination.rating}</span>
+                    <span className="text-sm text-muted-foreground">({destination.reviews} reviews)</span>
                   </div>
                 </CardContent>
               </Card>
@@ -339,112 +383,101 @@ export default function GiftCardsPage() {
 
         {/* How to Redeem */}
         <div className="mb-16">
-          <Card>
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">How to Redeem Your Gift Card</CardTitle>
-              <CardDescription>Simple steps to use your Roomy gift card</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="text-center">
-                  <div className="bg-primary/10 p-4 rounded-full w-fit mx-auto mb-4">
-                    <span className="text-2xl font-bold text-primary">1</span>
-                  </div>
-                  <h3 className="font-semibold mb-2">Browse & Book</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Find your perfect accommodation and proceed to checkout
-                  </p>
+          <h2 className="text-3xl font-bold text-center mb-8">How to Redeem</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="text-center">
+              <CardContent className="p-6">
+                <div className="bg-blue-100 p-3 rounded-full w-fit mx-auto mb-4">
+                  <Mail className="w-8 h-8 text-blue-600" />
                 </div>
-                <div className="text-center">
-                  <div className="bg-primary/10 p-4 rounded-full w-fit mx-auto mb-4">
-                    <span className="text-2xl font-bold text-primary">2</span>
-                  </div>
-                  <h3 className="font-semibold mb-2">Enter Code</h3>
-                  <p className="text-sm text-muted-foreground">Enter your gift card code at checkout</p>
-                </div>
-                <div className="text-center">
-                  <div className="bg-primary/10 p-4 rounded-full w-fit mx-auto mb-4">
-                    <span className="text-2xl font-bold text-primary">3</span>
-                  </div>
-                  <h3 className="font-semibold mb-2">Apply Credit</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Gift card value is automatically applied to your booking
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="bg-primary/10 p-4 rounded-full w-fit mx-auto mb-4">
-                    <span className="text-2xl font-bold text-primary">4</span>
-                  </div>
-                  <h3 className="font-semibold mb-2">Enjoy Your Stay</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Complete your booking and enjoy your travel experience
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* FAQ */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Do gift cards expire?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  No, Roomy gift cards never expire. Recipients can use them whenever they're ready to travel.
-                </p>
+                <h3 className="font-semibold mb-2">1. Receive Gift Card</h3>
+                <p className="text-sm text-muted-foreground">Get your gift card code via email</p>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Can I use multiple gift cards?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Yes, you can combine multiple gift cards for a single booking, and you can also use them with other
-                  payment methods.
-                </p>
+            <Card className="text-center">
+              <CardContent className="p-6">
+                <div className="bg-green-100 p-3 rounded-full w-fit mx-auto mb-4">
+                  <Home className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="font-semibold mb-2">2. Browse & Book</h3>
+                <p className="text-sm text-muted-foreground">Choose your perfect accommodation</p>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">What if my booking costs less than the gift card value?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  The remaining balance stays on your gift card and can be used for future bookings.
-                </p>
+            <Card className="text-center">
+              <CardContent className="p-6">
+                <div className="bg-purple-100 p-3 rounded-full w-fit mx-auto mb-4">
+                  <CreditCard className="w-8 h-8 text-purple-600" />
+                </div>
+                <h3 className="font-semibold mb-2">3. Apply at Checkout</h3>
+                <p className="text-sm text-muted-foreground">Enter your gift card code during payment</p>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Can I get a refund for my gift card?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Gift cards are non-refundable, but they never expire so you can always use them for future travel.
-                </p>
+            <Card className="text-center">
+              <CardContent className="p-6">
+                <div className="bg-orange-100 p-3 rounded-full w-fit mx-auto mb-4">
+                  <Plane className="w-8 h-8 text-orange-600" />
+                </div>
+                <h3 className="font-semibold mb-2">4. Enjoy Your Trip</h3>
+                <p className="text-sm text-muted-foreground">Create unforgettable memories</p>
               </CardContent>
             </Card>
           </div>
         </div>
 
-        {/* CTA */}
+        {/* Testimonials */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-8">Happy Gift Recipients</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index}>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <img
+                      src={testimonial.image || "/placeholder.svg"}
+                      alt={testimonial.name}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                    <div>
+                      <h3 className="font-semibold">{testimonial.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {testimonial.occasion} • {testimonial.amount}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground italic">"{testimonial.quote}"</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* FAQ Section */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {faqItems.map((item, index) => (
+              <Card key={index}>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-2">{item.question}</h3>
+                  <p className="text-sm text-muted-foreground">{item.answer}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* CTA Section */}
         <Card className="bg-primary text-primary-foreground">
           <CardContent className="text-center py-12">
-            <Heart className="w-16 h-16 mx-auto mb-6 opacity-90" />
-            <h2 className="text-3xl font-bold mb-4">Give the Perfect Gift Today</h2>
+            <Camera className="w-16 h-16 mx-auto mb-6 opacity-90" />
+            <h2 className="text-3xl font-bold mb-4">Give the Gift of Adventure</h2>
             <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-              Whether it's for a birthday, anniversary, or just because, a Roomy gift card opens up a world of travel
-              possibilities.
+              Create lasting memories for your loved ones with a Roomy gift card. Perfect for any occasion, any amount,
+              any time.
             </p>
             <Button variant="secondary" size="lg">
               <Gift className="w-5 h-5 mr-2" />
-              Create Gift Card
+              Create Gift Card Now
             </Button>
           </CardContent>
         </Card>

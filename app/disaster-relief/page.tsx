@@ -2,88 +2,91 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import Footer from "@/components/footer"
 import {
   Heart,
   Home,
   Users,
-  Globe,
-  Shield,
-  HandHeart,
   MapPin,
-  Calendar,
-  DollarSign,
-  AlertTriangle,
+  Clock,
   Phone,
   Mail,
+  AlertTriangle,
+  CheckCircle,
+  Droplets,
+  Sun,
+  Mountain,
+  HandHeart,
+  Building,
 } from "lucide-react"
 
-const activePrograms = [
+const activeReliefPrograms = [
   {
-    title: "Flood Relief Housing - Eastern Uganda",
+    title: "Eastern Uganda Flood Response",
     location: "Mbale, Bududa, Sironko",
+    disaster: "Flooding",
     status: "Active",
-    urgency: "High",
-    description: "Providing temporary housing for families displaced by recent flooding in Eastern Uganda.",
-    beneficiaries: 450,
-    target: 600,
-    raised: 75000,
-    goal: 100000,
     startDate: "March 2024",
-    image: "/placeholder.svg?height=200&width=400&text=Flood+Relief+Housing",
+    homesProvided: 450,
+    peopleHelped: 1800,
+    progress: 75,
+    urgency: "High",
+    description: "Providing emergency housing for families displaced by severe flooding in the Mount Elgon region.",
+    needs: ["Temporary shelters", "Clean water access", "Medical supplies", "Food assistance"],
   },
   {
-    title: "Drought Response - Karamoja Region",
-    location: "Kotido, Moroto, Nakapiripirit",
+    title: "Karamoja Drought Relief",
+    location: "Moroto, Kotido, Kaabong",
+    disaster: "Drought",
     status: "Active",
-    urgency: "Critical",
-    description: "Emergency accommodation for pastoralist communities affected by severe drought conditions.",
-    beneficiaries: 320,
-    target: 500,
-    raised: 45000,
-    goal: 80000,
     startDate: "January 2024",
-    image: "/placeholder.svg?height=200&width=400&text=Drought+Response+Housing",
+    homesProvided: 320,
+    peopleHelped: 1280,
+    progress: 60,
+    urgency: "Critical",
+    description: "Supporting pastoralist communities affected by prolonged drought with temporary accommodation.",
+    needs: ["Water storage", "Livestock shelter", "Emergency food", "Healthcare"],
   },
   {
-    title: "Landslide Recovery - Mount Elgon",
-    location: "Bududa, Manafwa",
-    status: "Ongoing",
+    title: "Bududa Landslide Recovery",
+    location: "Bududa District",
+    disaster: "Landslides",
+    status: "Recovery Phase",
+    startDate: "December 2023",
+    homesProvided: 180,
+    peopleHelped: 720,
+    progress: 90,
     urgency: "Medium",
-    description: "Long-term housing solutions for communities affected by landslides on Mount Elgon slopes.",
-    beneficiaries: 180,
-    target: 250,
-    raised: 30000,
-    goal: 60000,
-    startDate: "February 2024",
-    image: "/placeholder.svg?height=200&width=400&text=Landslide+Recovery+Housing",
+    description: "Long-term housing solutions for families affected by landslides in mountainous areas.",
+    needs: ["Permanent housing", "Infrastructure repair", "Livelihood support", "Education facilities"],
   },
 ]
 
 const impactStats = [
   {
-    icon: Home,
-    label: "Homes Provided",
+    label: "Emergency Homes Provided",
     value: "2,450+",
-    description: "Emergency housing units provided since 2020",
+    description: "Since program launch",
+    icon: Home,
   },
   {
-    icon: Users,
     label: "People Helped",
     value: "12,000+",
-    description: "Individuals and families assisted",
+    description: "Individuals and families",
+    icon: Users,
   },
   {
-    icon: Globe,
-    label: "Communities Reached",
-    value: "85+",
-    description: "Villages and communities supported",
+    label: "Partner Organizations",
+    value: "25+",
+    description: "NGOs and government agencies",
+    icon: HandHeart,
   },
   {
-    icon: DollarSign,
-    label: "Funds Raised",
-    value: "UGX 2.5B+",
-    description: "Total funds raised for disaster relief",
+    label: "Response Time",
+    value: "< 48 hours",
+    description: "Average deployment time",
+    icon: Clock,
   },
 ]
 
@@ -91,26 +94,30 @@ const howItWorks = [
   {
     step: 1,
     title: "Disaster Assessment",
-    description: "Our team rapidly assesses housing needs in disaster-affected areas",
+    description: "Our team assesses the situation and identifies immediate housing needs",
     icon: AlertTriangle,
+    timeframe: "0-24 hours",
   },
   {
     step: 2,
-    title: "Host Network Activation",
-    description: "We mobilize our network of volunteer hosts to provide emergency accommodation",
+    title: "Host Mobilization",
+    description: "We connect with volunteer hosts and emergency accommodation providers",
     icon: Users,
+    timeframe: "24-48 hours",
   },
   {
     step: 3,
-    title: "Matching & Placement",
-    description: "Displaced families are matched with suitable temporary housing options",
+    title: "Emergency Placement",
+    description: "Displaced families are matched with suitable temporary accommodation",
     icon: Home,
+    timeframe: "48-72 hours",
   },
   {
     step: 4,
-    title: "Support & Recovery",
-    description: "Ongoing support is provided until families can return to permanent housing",
-    icon: Heart,
+    title: "Recovery Support",
+    description: "Ongoing support until families can return home or find permanent housing",
+    icon: CheckCircle,
+    timeframe: "Ongoing",
   },
 ]
 
@@ -119,31 +126,115 @@ const partnerOrganizations = [
     name: "Uganda Red Cross Society",
     role: "Emergency Response Coordination",
     logo: "/placeholder.svg?height=60&width=120&text=Red+Cross",
+    contribution: "Disaster assessment and first aid",
   },
   {
     name: "Office of the Prime Minister",
     role: "Government Coordination",
-    logo: "/placeholder.svg?height=60&width=120&text=OPM+Uganda",
+    logo: "/placeholder.svg?height=60&width=120&text=OPM",
+    contribution: "Policy support and resource allocation",
   },
   {
     name: "UNHCR Uganda",
-    role: "Refugee Support Services",
+    role: "Refugee Support",
     logo: "/placeholder.svg?height=60&width=120&text=UNHCR",
+    contribution: "International displacement expertise",
   },
   {
     name: "World Food Programme",
-    role: "Food Security Support",
+    role: "Food Security",
     logo: "/placeholder.svg?height=60&width=120&text=WFP",
+    contribution: "Emergency food assistance",
   },
   {
     name: "Oxfam Uganda",
-    role: "Community Development",
+    role: "Water & Sanitation",
     logo: "/placeholder.svg?height=60&width=120&text=Oxfam",
+    contribution: "Clean water and hygiene facilities",
   },
   {
-    name: "Save the Children Uganda",
-    role: "Child Protection Services",
+    name: "Save the Children",
+    role: "Child Protection",
     logo: "/placeholder.svg?height=60&width=120&text=Save+Children",
+    contribution: "Child-friendly spaces and education",
+  },
+]
+
+const waysToHelp = [
+  {
+    title: "Become an Emergency Host",
+    description: "Open your home to families in need during disasters",
+    icon: Home,
+    action: "Register as Host",
+    benefits: [
+      "Make immediate impact in crisis situations",
+      "Receive support and resources from our team",
+      "Connect with your community during difficult times",
+      "Flexible commitment based on your availability",
+    ],
+  },
+  {
+    title: "Donate Emergency Supplies",
+    description: "Contribute essential items for disaster response",
+    icon: HandHeart,
+    action: "View Needed Items",
+    benefits: [
+      "Directly help families with immediate needs",
+      "Tax-deductible donations",
+      "Regular updates on impact of your contribution",
+      "Option for one-time or recurring donations",
+    ],
+  },
+  {
+    title: "Volunteer Your Time",
+    description: "Join our disaster response volunteer network",
+    icon: Users,
+    action: "Join Volunteers",
+    benefits: [
+      "Gain valuable emergency response experience",
+      "Receive professional training and certification",
+      "Flexible scheduling around your availability",
+      "Be part of a dedicated community service team",
+    ],
+  },
+  {
+    title: "Corporate Partnership",
+    description: "Partner with us for large-scale disaster response",
+    icon: Building,
+    action: "Contact Us",
+    benefits: [
+      "Enhance corporate social responsibility profile",
+      "Employee volunteer opportunities",
+      "Brand visibility in community impact initiatives",
+      "Customized partnership packages available",
+    ],
+  },
+]
+
+const testimonials = [
+  {
+    name: "Sarah Nakato",
+    role: "Flood Survivor, Mbale",
+    story:
+      "When the floods destroyed our home, Roomy found us a safe place to stay within two days. The host family welcomed us like their own, and we felt human again during our darkest time.",
+    image: "/placeholder.svg?height=80&width=80&text=Sarah",
+    location: "Mbale District",
+  },
+  {
+    name: "David Okello",
+    role: "Emergency Host, Kampala",
+    story:
+      "Hosting a family displaced by landslides was one of the most rewarding experiences. Seeing their children smile again and knowing we provided safety during their crisis was incredible.",
+    image: "/placeholder.svg?height=80&width=80&text=David",
+    location: "Kampala",
+  },
+  {
+    name: "Grace Atim",
+    role: "Volunteer Coordinator",
+    story:
+      "Working with Roomy's disaster relief program has shown me the power of community. We've helped hundreds of families, and each story reminds me why this work matters.",
+    image: "/placeholder.svg?height=80&width=80&text=Grace",
+    location: "Jinja",
   },
 ]
 
@@ -158,12 +249,24 @@ export default function DisasterReliefPage() {
               <Heart className="w-16 h-16 text-red-600" />
             </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Roomy.org: Disaster Relief Housing</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Disaster Relief Housing</h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            When disasters strike, we mobilize our community to provide emergency housing for those in need. Together,
-            we're building resilience across Uganda.
+            When disaster strikes, we provide immediate emergency housing for displaced families across Uganda. Every
+            home matters, every family counts.
           </p>
         </div>
+
+        {/* Emergency Alert */}
+        <Alert className="mb-12 border-red-200 bg-red-50">
+          <AlertTriangle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">
+            <strong>Active Emergency:</strong> Eastern Uganda flooding requires immediate housing support. 450 families
+            still need temporary accommodation.{" "}
+            <Button variant="link" className="p-0 h-auto text-red-800 underline">
+              Help Now
+            </Button>
+          </AlertDescription>
+        </Alert>
 
         {/* Impact Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
@@ -181,72 +284,87 @@ export default function DisasterReliefPage() {
           ))}
         </div>
 
-        {/* Active Programs */}
+        {/* Active Relief Programs */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8">Active Relief Programs</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-            {activePrograms.map((program, index) => (
+          <div className="space-y-6">
+            {activeReliefPrograms.map((program, index) => (
               <Card key={index} className="overflow-hidden">
-                <div className="aspect-video bg-gray-100 relative">
-                  <img
-                    src={program.image || "/placeholder.svg"}
-                    alt={program.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <Badge
-                      variant={
-                        program.urgency === "Critical"
-                          ? "destructive"
-                          : program.urgency === "High"
-                            ? "default"
-                            : "secondary"
-                      }
-                    >
-                      {program.urgency}
-                    </Badge>
-                    <Badge variant="outline">{program.status}</Badge>
-                  </div>
-                </div>
                 <CardHeader>
-                  <CardTitle className="text-lg">{program.title}</CardTitle>
-                  <CardDescription className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {program.location}
-                  </CardDescription>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <CardTitle className="text-xl">{program.title}</CardTitle>
+                        <Badge
+                          variant={program.status === "Active" ? "default" : "secondary"}
+                          className={
+                            program.urgency === "Critical"
+                              ? "bg-red-100 text-red-800"
+                              : program.urgency === "High"
+                                ? "bg-orange-100 text-orange-800"
+                                : "bg-yellow-100 text-yellow-800"
+                          }
+                        >
+                          {program.urgency} Priority
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-4 h-4" />
+                          {program.location}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {program.disaster === "Flooding" ? (
+                            <Droplets className="w-4 h-4" />
+                          ) : program.disaster === "Drought" ? (
+                            <Sun className="w-4 h-4" />
+                          ) : (
+                            <Mountain className="w-4 h-4" />
+                          )}
+                          {program.disaster}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          Since {program.startDate}
+                        </div>
+                      </div>
+                      <CardDescription className="mb-4">{program.description}</CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">{program.description}</p>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>People Helped</span>
-                      <span>
-                        {program.beneficiaries} / {program.target}
-                      </span>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-primary">{program.homesProvided}</div>
+                      <div className="text-sm text-muted-foreground">Homes Provided</div>
                     </div>
-                    <Progress value={(program.beneficiaries / program.target) * 100} className="h-2" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Funds Raised</span>
-                      <span>
-                        UGX {program.raised.toLocaleString()} / {program.goal.toLocaleString()}
-                      </span>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{program.peopleHelped}</div>
+                      <div className="text-sm text-muted-foreground">People Helped</div>
                     </div>
-                    <Progress value={(program.raised / program.goal) * 100} className="h-2" />
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{program.progress}%</div>
+                      <div className="text-sm text-muted-foreground">Progress</div>
+                    </div>
                   </div>
-
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="w-4 h-4" />
-                    Started {program.startDate}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">Response Progress</span>
+                      <span className="text-sm text-muted-foreground">{program.progress}%</span>
+                    </div>
+                    <Progress value={program.progress} className="h-2" />
                   </div>
-
-                  <Button className="w-full">
-                    <HandHeart className="w-4 h-4 mr-2" />
-                    Support This Program
-                  </Button>
+                  <div className="mb-6">
+                    <h4 className="font-semibold mb-2">Current Needs:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {program.needs.map((need, needIndex) => (
+                        <Badge key={needIndex} variant="outline">
+                          {need}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <Button className="w-full sm:w-auto">Support This Program</Button>
                 </CardContent>
               </Card>
             ))}
@@ -255,8 +373,8 @@ export default function DisasterReliefPage() {
 
         {/* How It Works */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">How Our Disaster Relief Works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <h2 className="text-3xl font-bold text-center mb-8">How Our Emergency Response Works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {howItWorks.map((step, index) => (
               <Card key={index} className="text-center relative">
                 <CardContent className="p-6">
@@ -267,11 +385,12 @@ export default function DisasterReliefPage() {
                     <step.icon className="w-8 h-8 text-primary" />
                   </div>
                   <h3 className="font-semibold mb-2">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground">{step.description}</p>
+                  <p className="text-sm text-muted-foreground mb-3">{step.description}</p>
+                  <Badge variant="outline">{step.timeframe}</Badge>
                 </CardContent>
                 {index < howItWorks.length - 1 && (
-                  <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                    <div className="w-8 h-0.5 bg-primary/30"></div>
+                  <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2">
+                    <div className="w-6 h-0.5 bg-primary/30"></div>
                   </div>
                 )}
               </Card>
@@ -279,96 +398,114 @@ export default function DisasterReliefPage() {
           </div>
         </div>
 
-        {/* Get Involved */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Get Involved</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center">
-              <CardContent className="p-8">
-                <div className="bg-blue-100 p-4 rounded-full w-fit mx-auto mb-6">
-                  <Home className="w-12 h-12 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-semibold mb-4">Become a Relief Host</h3>
-                <p className="text-muted-foreground mb-6">
-                  Open your home to families in need during emergencies. We provide support and coordination.
-                </p>
-                <Button className="w-full">Join as Host</Button>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center">
-              <CardContent className="p-8">
-                <div className="bg-green-100 p-4 rounded-full w-fit mx-auto mb-6">
-                  <DollarSign className="w-12 h-12 text-green-600" />
-                </div>
-                <h3 className="text-xl font-semibold mb-4">Make a Donation</h3>
-                <p className="text-muted-foreground mb-6">
-                  Support our disaster relief efforts with a financial contribution. Every amount helps.
-                </p>
-                <Button className="w-full">Donate Now</Button>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center">
-              <CardContent className="p-8">
-                <div className="bg-purple-100 p-4 rounded-full w-fit mx-auto mb-6">
-                  <Users className="w-12 h-12 text-purple-600" />
-                </div>
-                <h3 className="text-xl font-semibold mb-4">Volunteer</h3>
-                <p className="text-muted-foreground mb-6">
-                  Join our volunteer network to help coordinate relief efforts and support affected communities.
-                </p>
-                <Button className="w-full">Volunteer</Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Partners */}
+        {/* Partner Organizations */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-8">Our Partners</h2>
           <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
-            We work closely with government agencies, NGOs, and international organizations to maximize our impact.
+            We work with leading humanitarian organizations to ensure comprehensive disaster response and recovery
+            support.
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {partnerOrganizations.map((partner, index) => (
-              <Card key={index} className="p-4 text-center hover:shadow-md transition-shadow">
-                <img
-                  src={partner.logo || "/placeholder.svg"}
-                  alt={partner.name}
-                  className="w-full h-12 object-contain mb-3"
-                />
-                <h4 className="font-medium text-sm mb-1">{partner.name}</h4>
-                <p className="text-xs text-muted-foreground">{partner.role}</p>
+              <Card key={index}>
+                <CardContent className="p-6 text-center">
+                  <div className="bg-gray-100 p-4 rounded-lg mb-4">
+                    <img
+                      src={partner.logo || "/placeholder.svg"}
+                      alt={partner.name}
+                      className="w-full h-12 object-contain"
+                    />
+                  </div>
+                  <h3 className="font-semibold mb-1">{partner.name}</h3>
+                  <p className="text-sm text-primary font-medium mb-2">{partner.role}</p>
+                  <p className="text-sm text-muted-foreground">{partner.contribution}</p>
+                </CardContent>
               </Card>
             ))}
           </div>
         </div>
 
-        {/* Contact Section */}
-        <Card className="bg-primary text-primary-foreground">
+        {/* Ways to Help */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-8">How You Can Help</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {waysToHelp.map((way, index) => (
+              <Card key={index} className="h-full">
+                <CardHeader>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="bg-primary/10 p-2 rounded-full">
+                      <way.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <CardTitle className="text-xl">{way.title}</CardTitle>
+                  </div>
+                  <CardDescription>{way.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 flex flex-col">
+                  <ul className="space-y-2 mb-6 flex-1">
+                    {way.benefits.map((benefit, benefitIndex) => (
+                      <li key={benefitIndex} className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{benefit}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button className="w-full">{way.action}</Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Testimonials */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-8">Stories of Hope</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index}>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <img
+                      src={testimonial.image || "/placeholder.svg"}
+                      alt={testimonial.name}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                    <div>
+                      <h3 className="font-semibold">{testimonial.name}</h3>
+                      <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                      <p className="text-xs text-muted-foreground">{testimonial.location}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground italic">"{testimonial.story}"</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Emergency Contact */}
+        <Card className="bg-red-50 border-red-200">
           <CardContent className="text-center py-12">
-            <Shield className="w-16 h-16 mx-auto mb-6 opacity-90" />
-            <h2 className="text-3xl font-bold mb-4">Need Emergency Housing?</h2>
-            <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-              If you or your community has been affected by a disaster and need emergency housing assistance, contact us
-              immediately.
+            <AlertTriangle className="w-16 h-16 mx-auto mb-6 text-red-600" />
+            <h2 className="text-3xl font-bold mb-4 text-red-800">Emergency Housing Needed?</h2>
+            <p className="text-lg mb-8 text-red-700 max-w-2xl mx-auto">
+              If you or someone you know needs emergency housing due to a disaster, contact us immediately. Our team is
+              available 24/7 to help.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="secondary" size="lg">
+              <Button size="lg" className="bg-red-600 hover:bg-red-700">
                 <Phone className="w-5 h-5 mr-2" />
-                Call Emergency Line
+                Call Emergency Hotline
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white bg-transparent"
               >
                 <Mail className="w-5 h-5 mr-2" />
-                Email Relief Team
+                Email Emergency Team
               </Button>
             </div>
-            <p className="text-sm mt-4 opacity-75">Emergency Hotline: +256 700 123 456 (Available 24/7)</p>
+            <p className="text-sm mt-4 text-red-600">Emergency Hotline: +256 800 123 456 (Available 24/7)</p>
           </CardContent>
         </Card>
       </main>
