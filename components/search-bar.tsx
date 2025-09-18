@@ -1,278 +1,302 @@
 "use client"
 
 import { useState } from "react"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, ChevronDown, MapPin, Calendar, Users } from "lucide-react"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Slider } from "@/components/ui/slider"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Calendar as CalendarComponent } from "@/components/ui/calendar"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent } from "@/components/ui/card"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
 import { Badge } from "@/components/ui/badge"
+import { Search, MapPin, CalendarIcon, Users, Minus, Plus } from "lucide-react"
+import { format } from "date-fns"
+import { useRouter } from "next/navigation"
 
-interface SearchFilters {
+interface SearchParams {
   location: string
   checkIn: Date | undefined
   checkOut: Date | undefined
-  guests: number
-  priceRange: [number, number]
-  bedrooms: number
-  bathrooms: number
-  propertyType: string
-  amenities: string[]
-  instantBook: boolean
-  superhost: boolean
+  guests: {
+    adults: number
+    children: number
+    infants: number
+  }
 }
 
+const popularLocations = ["Kampala", "Entebbe", "Jinja", "Mukono", "Fort Portal", "Mbarara", "Gulu", "Mbale"]
+
 export default function SearchBar() {
-  const [filters, setFilters] = useState<SearchFilters>({
+  const router = useRouter()
+  const [searchParams, setSearchParams] = useState<SearchParams>({
     location: "",
     checkIn: undefined,
     checkOut: undefined,
-    guests: 1,
-    priceRange: [0, 500],
-    bedrooms: 1,
-    bathrooms: 1,
-    propertyType: "",
-    amenities: [],
-    instantBook: false,
-    superhost: false,
+    guests: {
+      adults: 2,
+      children: 0,
+      infants: 0,
+    },
   })
 
-  const [activeFilters, setActiveFilters] = useState<string[]>([])
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false)
+  const [checkInOpen, setCheckInOpen] = useState(false)
+  const [checkOutOpen, setCheckOutOpen] = useState(false)
+  const [guestsOpen, setGuestsOpen] = useState(false)
+
+  const totalGuests = searchParams.guests.adults + searchParams.guests.children + searchParams.guests.infants
+
+  const updateGuests = (type: keyof typeof searchParams.guests, increment: boolean) => {
+    setSearchParams((prev) => ({
+      ...prev,
+      guests: {
+        ...prev.guests,
+        [type]: increment ? prev.guests[type] + 1 : Math.max(0, prev.guests[type] - 1),
+      },
+    }))
+  }
 
   const handleSearch = () => {
-    console.log("Searching with filters:", filters)
-    // Update active filters for display
-    const active = []
-    if (filters.location) active.push(`Location: ${filters.location}`)
-    if (filters.checkIn) active.push(`Check-in: ${filters.checkIn.toDateString()}`)
-    if (filters.guests > 1) active.push(`Guests: ${filters.guests}`)
-    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) {
-      active.push(`Price: $${filters.priceRange[0]}-$${filters.priceRange[1]}`)
-    }
-    setActiveFilters(active)
+    const params = new URLSearchParams()
+
+    if (searchParams.location) params.set("location", searchParams.location)
+    if (searchParams.checkIn) params.set("checkIn", searchParams.checkIn.toISOString())
+    if (searchParams.checkOut) params.set("checkOut", searchParams.checkOut.toISOString())
+    if (totalGuests > 0) params.set("guests", totalGuests.toString())
+
+    router.push(`/explore?${params.toString()}`)
   }
 
-  const clearFilters = () => {
-    setFilters({
-      location: "",
-      checkIn: undefined,
-      checkOut: undefined,
-      guests: 1,
-      priceRange: [0, 500],
-      bedrooms: 1,
-      bathrooms: 1,
-      propertyType: "",
-      amenities: [],
-      instantBook: false,
-      superhost: false,
-    })
-    setActiveFilters([])
-  }
+  const filteredLocations = popularLocations.filter((location) =>
+    location.toLowerCase().includes(searchParams.location.toLowerCase()),
+  )
 
   return (
-    <div className="space-y-4">
-      {/* Main Search Bar */}
-      <div className="flex flex-col md:flex-row gap-2 p-2 border rounded-full bg-white shadow-lg">
-        <div className="flex-1 flex items-center px-4 py-2">
-          <MapPin className="h-4 w-4 text-gray-400 mr-2" />
-          <Input
-            type="text"
-            placeholder="Where are you going?"
-            value={filters.location}
-            onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-            className="border-none shadow-none focus-visible:ring-0"
-          />
-        </div>
-
-        <div className="flex items-center px-4 py-2 border-l">
-          <Calendar className="h-4 w-4 text-gray-400 mr-2" />
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" className="p-0 h-auto font-normal">
-                {filters.checkIn ? filters.checkIn.toDateString() : "Check-in"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <CalendarComponent
-                mode="single"
-                selected={filters.checkIn}
-                onSelect={(date) => setFilters({ ...filters, checkIn: date })}
-                initialFocus
+    <Card className="w-full max-w-4xl mx-auto shadow-lg">
+      <CardContent className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Location */}
+          <div className="relative">
+            <Label htmlFor="location" className="text-sm font-medium mb-2 block">
+              Where
+            </Label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="location"
+                placeholder="Search destinations"
+                value={searchParams.location}
+                onChange={(e) => {
+                  setSearchParams((prev) => ({ ...prev, location: e.target.value }))
+                  setShowLocationSuggestions(true)
+                }}
+                onFocus={() => setShowLocationSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 200)}
+                className="pl-10"
               />
-            </PopoverContent>
-          </Popover>
-        </div>
 
-        <div className="flex items-center px-4 py-2 border-l">
-          <Users className="h-4 w-4 text-gray-400 mr-2" />
-          <Select
-            value={filters.guests.toString()}
-            onValueChange={(value) => setFilters({ ...filters, guests: Number.parseInt(value) })}
-          >
-            <SelectTrigger className="border-none shadow-none">
-              <SelectValue placeholder="Guests" />
-            </SelectTrigger>
-            <SelectContent>
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-                <SelectItem key={num} value={num.toString()}>
-                  {num} guest{num > 1 ? "s" : ""}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <Button onClick={handleSearch} className="rounded-full px-6">
-          <Search className="h-4 w-4 mr-2" />
-          Search
-        </Button>
-      </div>
-
-      {/* Advanced Filters */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline">
-              Filters <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80">
-            <div className="grid gap-4">
-              <div className="space-y-2">
-                <h4 className="font-medium leading-none">Price Range</h4>
-                <Slider
-                  min={0}
-                  max={1000}
-                  step={10}
-                  value={filters.priceRange}
-                  onValueChange={(value) => setFilters({ ...filters, priceRange: value as [number, number] })}
-                />
-                <div className="flex justify-between">
-                  <span>${filters.priceRange[0]}</span>
-                  <span>${filters.priceRange[1]}</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Bedrooms</Label>
-                  <Select
-                    value={filters.bedrooms.toString()}
-                    onValueChange={(value) => setFilters({ ...filters, bedrooms: Number.parseInt(value) })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5].map((num) => (
-                        <SelectItem key={num} value={num.toString()}>
-                          {num}+
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Bathrooms</Label>
-                  <Select
-                    value={filters.bathrooms.toString()}
-                    onValueChange={(value) => setFilters({ ...filters, bathrooms: Number.parseInt(value) })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5].map((num) => (
-                        <SelectItem key={num} value={num.toString()}>
-                          {num}+
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Property Type</Label>
-                <Select
-                  value={filters.propertyType}
-                  onValueChange={(value) => setFilters({ ...filters, propertyType: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Any type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="apartment">Apartment</SelectItem>
-                    <SelectItem value="house">House</SelectItem>
-                    <SelectItem value="villa">Villa</SelectItem>
-                    <SelectItem value="studio">Studio</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Amenities</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {["Wi-Fi", "Air Conditioning", "Kitchen", "Washing Machine", "TV", "Parking", "Pool", "Gym"].map(
-                    (amenity) => (
-                      <div key={amenity} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={amenity}
-                          checked={filters.amenities.includes(amenity)}
-                          onCheckedChange={(checked) => {
-                            setFilters({
-                              ...filters,
-                              amenities: checked
-                                ? [...filters.amenities, amenity]
-                                : filters.amenities.filter((a) => a !== amenity),
-                            })
-                          }}
-                        />
-                        <Label htmlFor={amenity} className="text-sm">
-                          {amenity}
-                        </Label>
-                      </div>
-                    ),
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="instantBook"
-                    checked={filters.instantBook}
-                    onCheckedChange={(checked) => setFilters({ ...filters, instantBook: checked as boolean })}
-                  />
-                  <Label htmlFor="instantBook">Instant Book</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="superhost"
-                    checked={filters.superhost}
-                    onCheckedChange={(checked) => setFilters({ ...filters, superhost: checked as boolean })}
-                  />
-                  <Label htmlFor="superhost">Superhost</Label>
-                </div>
-              </div>
-
-              <Button onClick={clearFilters} variant="outline" className="w-full bg-transparent">
-                Clear All Filters
-              </Button>
+              {showLocationSuggestions && filteredLocations.length > 0 && (
+                <Card className="absolute top-full left-0 right-0 z-50 mt-1 shadow-lg">
+                  <CardContent className="p-2">
+                    {filteredLocations.map((location) => (
+                      <button
+                        key={location}
+                        className="w-full text-left px-3 py-2 hover:bg-muted rounded-md transition-colors"
+                        onClick={() => {
+                          setSearchParams((prev) => ({ ...prev, location }))
+                          setShowLocationSuggestions(false)
+                        }}
+                      >
+                        <div className="flex items-center">
+                          <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                          {location}
+                        </div>
+                      </button>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          </PopoverContent>
-        </Popover>
+          </div>
 
-        {activeFilters.map((filter, index) => (
-          <Badge key={index} variant="secondary">
-            {filter}
+          {/* Check-in */}
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Check-in</Label>
+            <Popover open={checkInOpen} onOpenChange={setCheckInOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal bg-transparent">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {searchParams.checkIn ? format(searchParams.checkIn, "MMM dd") : "Add dates"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={searchParams.checkIn}
+                  onSelect={(date) => {
+                    setSearchParams((prev) => ({ ...prev, checkIn: date }))
+                    setCheckInOpen(false)
+                  }}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Check-out */}
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Check-out</Label>
+            <Popover open={checkOutOpen} onOpenChange={setCheckOutOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal bg-transparent">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {searchParams.checkOut ? format(searchParams.checkOut, "MMM dd") : "Add dates"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={searchParams.checkOut}
+                  onSelect={(date) => {
+                    setSearchParams((prev) => ({ ...prev, checkOut: date }))
+                    setCheckOutOpen(false)
+                  }}
+                  disabled={(date) => date < new Date() || (searchParams.checkIn && date <= searchParams.checkIn)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Guests */}
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Who</Label>
+            <Popover open={guestsOpen} onOpenChange={setGuestsOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-left font-normal bg-transparent">
+                  <Users className="mr-2 h-4 w-4" />
+                  {totalGuests > 0 ? `${totalGuests} guest${totalGuests > 1 ? "s" : ""}` : "Add guests"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80" align="start">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">Adults</div>
+                      <div className="text-sm text-muted-foreground">Ages 13 or above</div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 bg-transparent"
+                        onClick={() => updateGuests("adults", false)}
+                        disabled={searchParams.guests.adults <= 1}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-8 text-center">{searchParams.guests.adults}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 bg-transparent"
+                        onClick={() => updateGuests("adults", true)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">Children</div>
+                      <div className="text-sm text-muted-foreground">Ages 2-12</div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 bg-transparent"
+                        onClick={() => updateGuests("children", false)}
+                        disabled={searchParams.guests.children <= 0}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-8 text-center">{searchParams.guests.children}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 bg-transparent"
+                        onClick={() => updateGuests("children", true)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">Infants</div>
+                      <div className="text-sm text-muted-foreground">Under 2</div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 bg-transparent"
+                        onClick={() => updateGuests("infants", false)}
+                        disabled={searchParams.guests.infants <= 0}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-8 text-center">{searchParams.guests.infants}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 bg-transparent"
+                        onClick={() => updateGuests("infants", true)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
+        {/* Search Button */}
+        <div className="mt-6 flex justify-center">
+          <Button
+            onClick={handleSearch}
+            size="lg"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
+          >
+            <Search className="mr-2 h-4 w-4" />
+            Search Properties
+          </Button>
+        </div>
+
+        {/* Quick Filters */}
+        <div className="mt-4 flex flex-wrap gap-2 justify-center">
+          <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+            Entire homes
           </Badge>
-        ))}
-      </div>
-    </div>
+          <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+            Pet-friendly
+          </Badge>
+          <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+            Free WiFi
+          </Badge>
+          <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+            Pool
+          </Badge>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
+
+// Named export for compatibility
+export { SearchBar }

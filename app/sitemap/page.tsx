@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Home, Search, Heart, User, Building, MapPin, Shield, Users, FileText, Globe } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import Footer from "@/components/footer"
+import { Home, Search, Heart, User, Building, MapPin, Shield, Users, FileText, Globe, Mail } from "lucide-react"
 
 const sitemapSections = [
   {
@@ -112,8 +114,8 @@ export default function SitemapPage() {
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Sitemap</h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Navigate through all pages and features of the Roomy platform. Find exactly what you're looking for with
-            our comprehensive site directory.
+            Navigate through all pages and features of the Roomy platform. Find exactly what you're looking for with our
+            comprehensive site directory.
           </p>
         </div>
 
@@ -130,6 +132,26 @@ export default function SitemapPage() {
           ))}
         </div>
 
+        {/* Search Box */}
+        <Card className="mb-12">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Search className="w-5 h-5" />
+              Quick Page Search
+            </CardTitle>
+            <CardDescription>Search for specific pages or features</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              <Input placeholder="Search for pages, features, or content..." className="flex-1" />
+              <Button>
+                <Search className="w-4 h-4 mr-2" />
+                Search
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Sitemap Sections */}
         <div className="space-y-12">
           {sitemapSections.map((section, sectionIndex) => (
@@ -141,9 +163,7 @@ export default function SitemapPage() {
                   </div>
                   {section.title}
                 </CardTitle>
-                <CardDescription>
-                  {section.links.length} pages in this section
-                </CardDescription>
+                <CardDescription>{section.links.length} pages in this section</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -156,15 +176,9 @@ export default function SitemapPage() {
                       >
                         <a href={link.url}>
                           <div className="space-y-2">
-                            <div className="font-semibold text-primary group-hover:text-primary/80">
-                              {link.name}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {link.description}
-                            </div>
-                            <div className="text-xs text-muted-foreground font-mono">
-                              {link.url}
-                            </div>
+                            <div className="font-semibold text-primary group-hover:text-primary/80">{link.name}</div>
+                            <div className="text-sm text-muted-foreground">{link.description}</div>
+                            <div className="text-xs text-muted-foreground font-mono">{link.url}</div>
                           </div>
                         </a>
                       </Button>
@@ -176,7 +190,72 @@ export default function SitemapPage() {
           ))}
         </div>
 
+        {/* Additional Resources */}
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                XML Sitemap
+              </CardTitle>
+              <CardDescription>For search engines and developers</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Access our machine-readable XML sitemap for SEO and development purposes.
+              </p>
+              <Button variant="outline" className="w-full bg-transparent">
+                Download XML Sitemap
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="w-5 h-5" />
+                Missing Something?
+              </CardTitle>
+              <CardDescription>Can't find what you're looking for?</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                If you can't find a specific page or feature, our support team is here to help.
+              </p>
+              <Button variant="outline" className="w-full bg-transparent">
+                Contact Support
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Search Suggestion */}
         <Card className="mt-16 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
           <CardContent className="text-center py-12">
-            <Search\
+            <Search className="w-16 h-16 mx-auto mb-6 text-blue-600" />
+            <h2 className="text-3xl font-bold mb-4 text-blue-800">Can't Find What You Need?</h2>
+            <p className="text-lg mb-8 text-blue-700 max-w-2xl mx-auto">
+              Use our search feature or browse by category to find exactly what you're looking for. Our comprehensive
+              platform has everything you need for your travel experience.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Search className="w-5 h-5 mr-2" />
+                Search Platform
+              </Button>
+              <Button
+                variant="outline"
+                className="border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white bg-transparent"
+              >
+                <Mail className="w-5 h-5 mr-2" />
+                Contact Support
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+
+      <Footer />
+    </div>
+  )
+}
