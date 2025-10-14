@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Header } from "@/components/header"
 import Footer from "@/components/footer"
+import ChatBox from "@/components/chat-box"
 import { SearchBar } from "@/components/search-bar"
 import { ApartmentList } from "@/components/apartment-list"
 import { Testimonials } from "@/components/testimonials"
@@ -244,6 +245,7 @@ export default function HomePage() {
       </section>
 
       <Footer />
+      <ChatBox />
     </div>
   )
 }

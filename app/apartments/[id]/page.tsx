@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
+import ChatBox from "@/components/chat-box"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -25,19 +26,16 @@ import { useAuth } from "@/lib/auth"
 import { supabase } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
+import type { DateRange } from "react-day-picker"
 
 export default function ApartmentDetail({ params }: { params: { id: string } }) {
   const { user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
-  const [selectedDates, setSelectedDates] = useState<{ from: Date | undefined; to: Date | undefined }>({
-    from: undefined,
-    to: undefined,
-  })
+  const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [guests, setGuests] = useState(1)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
-  const [isFollowing, setIsFollowing] = useState(false)
   const [showBookingDialog, setShowBookingDialog] = useState(false)
   const [bookingDetails, setBookingDetails] = useState({
     specialRequests: "",
@@ -53,13 +51,12 @@ export default function ApartmentDetail({ params }: { params: { id: string } }) 
 
   const loadProperty = async () => {
     try {
-      // For now, use mock data. In production, this would fetch from Supabase
       const mockProperty = {
         id: params.id,
         title: "Modern Apartment in Kampala",
         description: "A beautiful, modern apartment in the heart of Kampala. Perfect for travelers and digital nomads.",
         price: 50,
-        images: ["/images/kampala-apartment.png", "/images/kampala-apartment.png", "/images/kampala-apartment.png"],
+        images: ["/images/kampala-apartment.png", "/images/entebbe-studio.png", "/images/jinja-family-home.png"],
         location: "Kampala Central, Uganda",
         bedrooms: 2,
         bathrooms: 1,
@@ -90,8 +87,8 @@ export default function ApartmentDetail({ params }: { params: { id: string } }) 
   }
 
   const calculateNights = () => {
-    if (selectedDates.from && selectedDates.to) {
-      const diffTime = Math.abs(selectedDates.to.getTime() - selectedDates.from.getTime())
+    if (dateRange?.from && dateRange?.to) {
+      const diffTime = Math.abs(dateRange.to.getTime() - dateRange.from.getTime())
       return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     }
     return 0
@@ -119,7 +116,7 @@ export default function ApartmentDetail({ params }: { params: { id: string } }) 
       return
     }
 
-    if (!selectedDates.from || !selectedDates.to) {
+    if (!dateRange?.from || !dateRange?.to) {
       toast({
         title: "Missing dates",
         description: "Please select check-in and check-out dates",
@@ -132,7 +129,7 @@ export default function ApartmentDetail({ params }: { params: { id: string } }) 
   }
 
   const confirmBooking = async () => {
-    if (!user || !property) return
+    if (!user || !property || !dateRange?.from || !dateRange?.to) return
 
     try {
       const { data, error } = await supabase
@@ -140,8 +137,8 @@ export default function ApartmentDetail({ params }: { params: { id: string } }) 
         .insert({
           property_id: property.id,
           guest_id: user.id,
-          check_in: selectedDates.from!.toISOString().split("T")[0],
-          check_out: selectedDates.to!.toISOString().split("T")[0],
+          check_in: dateRange.from.toISOString().split("T")[0],
+          check_out: dateRange.to.toISOString().split("T")[0],
           guests,
           total_price: calculateTotal().total,
           status: "confirmed",
@@ -179,6 +176,7 @@ export default function ApartmentDetail({ params }: { params: { id: string } }) 
           <div className="text-center">Loading...</div>
         </main>
         <Footer />
+        <ChatBox />
       </div>
     )
   }
@@ -191,6 +189,7 @@ export default function ApartmentDetail({ params }: { params: { id: string } }) 
           <div className="text-center">Property not found</div>
         </main>
         <Footer />
+        <ChatBox />
       </div>
     )
   }
@@ -307,27 +306,16 @@ export default function ApartmentDetail({ params }: { params: { id: string } }) 
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs font-medium">CHECK-IN</Label>
-                    <Calendar
-                      mode="single"
-                      selected={selectedDates.from}
-                      onSelect={(date) => setSelectedDates({ ...selectedDates, from: date })}
-                      disabled={(date) => date < new Date()}
-                      className="rounded-md border"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs font-medium">CHECK-OUT</Label>
-                    <Calendar
-                      mode="single"
-                      selected={selectedDates.to}
-                      onSelect={(date) => setSelectedDates({ ...selectedDates, to: date })}
-                      disabled={(date) => date < new Date() || (selectedDates.from && date <= selectedDates.from)}
-                      className="rounded-md border"
-                    />
-                  </div>
+                <div>
+                  <Label className="text-xs font-medium mb-2 block">SELECT DATES</Label>
+                  <Calendar
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    disabled={(date) => date < new Date()}
+                    className="rounded-md border w-full"
+                    numberOfMonths={1}
+                  />
                 </div>
 
                 <div>
@@ -346,7 +334,7 @@ export default function ApartmentDetail({ params }: { params: { id: string } }) 
                   </Select>
                 </div>
 
-                {selectedDates.from && selectedDates.to && (
+                {dateRange?.from && dateRange?.to && (
                   <div className="space-y-2 pt-4 border-t">
                     <div className="flex justify-between text-sm">
                       <span>
@@ -375,7 +363,7 @@ export default function ApartmentDetail({ params }: { params: { id: string } }) 
 
                 <Button
                   onClick={handleBooking}
-                  disabled={!selectedDates.from || !selectedDates.to}
+                  disabled={!dateRange?.from || !dateRange?.to}
                   className="w-full"
                   size="lg"
                 >
@@ -443,6 +431,7 @@ export default function ApartmentDetail({ params }: { params: { id: string } }) 
         </Dialog>
       </main>
       <Footer />
+      <ChatBox />
     </div>
   )
 }

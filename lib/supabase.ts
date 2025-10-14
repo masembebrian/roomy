@@ -1,8 +1,10 @@
 import { createClient } from "@supabase/supabase-js"
 
-// Use placeholder values if environment variables are not set (for build time)
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co"
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key"
+// Supabase configuration
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://tbzandmtoflteqffueii.supabase.co"
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiemFuZG10b2ZsdGVxZmZ1ZWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzOTgxNDAsImV4cCI6MjA3NTk3NDE0MH0.zKdLAUWG941B0YLhIC3TIgmf0NIy2EfrAW4GJdP96Fg"
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -13,11 +15,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // Helper to check if Supabase is properly configured
 export const isSupabaseConfigured = () => {
-  return (
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-    process.env.NEXT_PUBLIC_SUPABASE_URL !== "https://placeholder.supabase.co"
-  )
+  return supabaseUrl && supabaseAnonKey && supabaseUrl !== "https://placeholder.supabase.co"
 }
 
 export type Database = {

@@ -1,67 +1,66 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Star } from "lucide-react"
 
 const testimonials = [
   {
     id: 1,
-    name: "Sarah M.",
-    avatar: "/placeholder.svg?height=40&width=40",
+    name: "Sarah Johnson",
+    location: "United States",
     rating: 5,
-    text: "Roomy made finding an apartment in Kampala so easy! The listings were accurate and the booking process was smooth.",
+    comment:
+      "Amazing experience! The apartment was exactly as described and the host was very responsive. Would definitely book again.",
+    image: "/images/host-sarah.png",
+    date: "December 2023",
   },
   {
     id: 2,
-    name: "John D.",
-    avatar: "/placeholder.svg?height=40&width=40",
-    rating: 4,
-    text: "Great selection of properties across Uganda. I found a perfect vacation home in Jinja thanks to Roomy.",
+    name: "David Chen",
+    location: "Singapore",
+    rating: 5,
+    comment:
+      "Perfect location and beautiful property. Everything was clean and well-maintained. Highly recommend for anyone visiting Kampala.",
+    image: "/images/host-john.png",
+    date: "November 2023",
   },
   {
     id: 3,
-    name: "Emily L.",
-    avatar: "/placeholder.svg?height=40&width=40",
+    name: "Emily Thompson",
+    location: "United Kingdom",
     rating: 5,
-    text: "The customer service at Roomy is outstanding. They helped me resolve an issue with my booking quickly and efficiently.",
+    comment:
+      "Wonderful stay! The host went above and beyond to make sure we had everything we needed. The neighborhood was safe and convenient.",
+    image: "/images/host-emily.png",
+    date: "October 2023",
   },
 ]
 
 export function Testimonials() {
   return (
-    <div className="py-12 bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-8">What Our Customers Say</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {testimonials.map((testimonial) => (
-            <Card key={testimonial.id}>
-              <CardHeader>
-                <div className="flex items-center space-x-4">
-                  <Avatar>
-                    <AvatarImage src={testimonial.avatar || "/placeholder.svg"} alt={testimonial.name} />
-                    <AvatarFallback>{testimonial.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <CardTitle>{testimonial.name}</CardTitle>
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < testimonial.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 dark:text-gray-300">{testimonial.text}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {testimonials.map((testimonial) => (
+        <Card key={testimonial.id}>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4 mb-4">
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={testimonial.image || "/placeholder.svg"} alt={testimonial.name} />
+                <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div>
+                <h4 className="font-semibold">{testimonial.name}</h4>
+                <p className="text-sm text-muted-foreground">{testimonial.location}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 mb-3">
+              {Array.from({ length: testimonial.rating }).map((_, i) => (
+                <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground mb-2">{testimonial.comment}</p>
+            <p className="text-xs text-muted-foreground">{testimonial.date}</p>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   )
 }
