@@ -1,5 +1,7 @@
 "use client"
+
 import { useState, useEffect, createContext, useContext, type ReactNode } from "react"
+import { supabase } from "./supabase"
 
 interface User {
   id: string
@@ -21,6 +23,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null
+  loading: boolean
   signIn: (credentials: { email?: string; phone?: string; password?: string; method: string }) => Promise<boolean>
   signUp: (userData: {
     name: string
@@ -30,79 +33,72 @@ interface AuthContextType {
     method: "email" | "google" | "phone"
   }) => Promise<boolean>
   signInWithGoogle: () => Promise<boolean>
-  signOut: () => void
-  updateProfile: (updates: Partial<User>) => void
+  signOut: () => Promise<void>
+  updateProfile: (updates: Partial<User>) => Promise<boolean>
   requestVerification: () => Promise<boolean>
   verifyPhone: (phone: string, code: string) => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Mock user database
-const mockUsers: User[] = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    image: "/images/host-john.png",
-    signUpMethod: "email",
-    verified: false,
-    verificationStatus: "none",
-    joinDate: "2024-01-15",
-    bio: "Travel enthusiast and digital nomad",
-    location: "Kampala, Uganda",
-    languages: ["English", "Luganda"],
-    work: "Software Developer",
-  },
-  {
-    id: "2",
-    name: "Sarah Wilson",
-    email: "sarah@gmail.com",
-    image: "/images/host-sarah.png",
-    signUpMethod: "google",
-    verified: true,
-    verificationStatus: "verified",
-    joinDate: "2023-11-20",
-    bio: "Host and local guide",
-    location: "Entebbe, Uganda",
-    languages: ["English", "Swahili"],
-    work: "Tourism Guide",
-  },
-  {
-    id: "3",
-    name: "David Kim",
-    phone: "+256700123456",
-    image: "/images/host-david.png",
-    signUpMethod: "phone",
-    verified: false,
-    verificationStatus: "pending",
-    joinDate: "2024-02-01",
-    bio: "Business traveler",
-    location: "Jinja, Uganda",
-    languages: ["English"],
-    work: "Business Consultant",
-  },
-]
-
-// Mock passwords (in real app, these would be hashed)
-const mockPasswords: Record<string, string> = {
-  "john@example.com": "password123",
-  "sarah@gmail.com": "google_auth", // Google users don't have passwords
-  "+256700123456": "phone_auth", // Phone users don't have passwords
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check for existing session
-    const savedUser = localStorage.getItem("roomy_user")
-    if (savedUser) {
-      setUser(JSON.parse(savedUser))
-    }
-    setLoading(false)
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        loadUserProfile(session.user.id)
+      } else {
+        setLoading(false)
+      }
+    })
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        await loadUserProfile(session.user.id)
+      } else {
+        setUser(null)
+      }
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
+
+  const loadUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
+
+      if (error) throw error
+
+      if (data) {
+        setUser({
+          id: data.id,
+          name: data.name,
+          email: data.email || undefined,
+          phone: data.phone || undefined,
+          image: data.image || undefined,
+          signUpMethod: data.sign_up_method as "email" | "google" | "phone",
+          verified: data.verified,
+          verificationStatus: data.verification_status,
+          joinDate: data.join_date,
+          bio: data.bio || undefined,
+          location: data.location || undefined,
+          languages: data.languages || undefined,
+          work: data.work || undefined,
+          school: data.school || undefined,
+          emergencyContact: data.emergency_contact || undefined,
+        })
+      }
+    } catch (error) {
+      console.error("Error loading user profile:", error)
+    }
+  }
 
   const signIn = async (credentials: {
     email?: string
@@ -111,32 +107,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     method: string
   }): Promise<boolean> => {
     try {
-      const identifier = credentials.email || credentials.phone
-      if (!identifier) return false
+      if (credentials.method === "email" && credentials.email && credentials.password) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: credentials.email,
+          password: credentials.password,
+        })
 
-      // Find user by email or phone
-      const foundUser = mockUsers.find((u) => u.email === identifier || u.phone === identifier)
+        if (error) throw error
+        if (data.user) {
+          await loadUserProfile(data.user.id)
+          return true
+        }
+      } else if (credentials.method === "phone" && credentials.phone && credentials.password) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          phone: credentials.phone,
+          password: credentials.password,
+        })
 
-      if (!foundUser) {
-        throw new Error("User not found")
-      }
-
-      // Check password for email users
-      if (credentials.method === "email" && foundUser.signUpMethod === "email") {
-        const storedPassword = mockPasswords[identifier]
-        if (storedPassword !== credentials.password) {
-          throw new Error("Invalid password")
+        if (error) throw error
+        if (data.user) {
+          await loadUserProfile(data.user.id)
+          return true
         }
       }
 
-      // For phone users, password check is skipped (they use SMS verification)
-      if (credentials.method === "phone" && foundUser.signUpMethod === "phone") {
-        // In real app, this would verify SMS code
-      }
-
-      setUser(foundUser)
-      localStorage.setItem("roomy_user", JSON.stringify(foundUser))
-      return true
+      return false
     } catch (error) {
       console.error("Sign in error:", error)
       return false
@@ -151,37 +146,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     method: "email" | "google" | "phone"
   }): Promise<boolean> => {
     try {
-      const identifier = userData.email || userData.phone
-      if (!identifier) return false
+      if (userData.method === "email" && userData.email && userData.password) {
+        const { data, error } = await supabase.auth.signUp({
+          email: userData.email,
+          password: userData.password,
+          options: {
+            data: {
+              name: userData.name,
+              sign_up_method: "email",
+            },
+          },
+        })
 
-      // Check if user already exists
-      const existingUser = mockUsers.find((u) => u.email === identifier || u.phone === identifier)
-      if (existingUser) {
-        throw new Error("User already exists")
+        if (error) throw error
+        return !!data.user
+      } else if (userData.method === "phone" && userData.phone && userData.password) {
+        const { data, error } = await supabase.auth.signUp({
+          phone: userData.phone,
+          password: userData.password,
+          options: {
+            data: {
+              name: userData.name,
+              sign_up_method: "phone",
+            },
+          },
+        })
+
+        if (error) throw error
+        return !!data.user
       }
 
-      // Create new user
-      const newUser: User = {
-        id: Date.now().toString(),
-        name: userData.name,
-        email: userData.email,
-        phone: userData.phone,
-        image: "/images/default-avatar.png",
-        signUpMethod: userData.method,
-        verified: userData.method === "google", // Google users are auto-verified
-        verificationStatus: userData.method === "google" ? "verified" : "none",
-        joinDate: new Date().toISOString().split("T")[0],
-      }
-
-      // Add to mock database
-      mockUsers.push(newUser)
-      if (userData.password && userData.email) {
-        mockPasswords[userData.email] = userData.password
-      }
-
-      setUser(newUser)
-      localStorage.setItem("roomy_user", JSON.stringify(newUser))
-      return true
+      return false
     } catch (error) {
       console.error("Sign up error:", error)
       return false
@@ -190,51 +185,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async (): Promise<boolean> => {
     try {
-      // Simulate Google OAuth
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
 
-      // Check if Google user exists, if not create one
-      let googleUser = mockUsers.find((u) => u.email === "google.user@gmail.com")
-
-      if (!googleUser) {
-        googleUser = {
-          id: Date.now().toString(),
-          name: "Google User",
-          email: "google.user@gmail.com",
-          image: "/images/host-emily.png",
-          signUpMethod: "google",
-          verified: true,
-          verificationStatus: "verified",
-          joinDate: new Date().toISOString().split("T")[0],
-        }
-        mockUsers.push(googleUser)
-      }
-
-      setUser(googleUser)
-      localStorage.setItem("roomy_user", JSON.stringify(googleUser))
-      return true
+      if (error) throw error
+      return !!data
     } catch (error) {
       console.error("Google sign in error:", error)
       return false
     }
   }
 
-  const signOut = () => {
-    setUser(null)
-    localStorage.removeItem("roomy_user")
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+    } catch (error) {
+      console.error("Sign out error:", error)
+    }
   }
 
-  const updateProfile = (updates: Partial<User>) => {
-    if (!user) return
+  const updateProfile = async (updates: Partial<User>): Promise<boolean> => {
+    try {
+      if (!user) return false
 
-    const updatedUser = { ...user, ...updates }
-    setUser(updatedUser)
-    localStorage.setItem("roomy_user", JSON.stringify(updatedUser))
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          name: updates.name,
+          bio: updates.bio,
+          location: updates.location,
+          languages: updates.languages,
+          work: updates.work,
+          school: updates.school,
+          emergency_contact: updates.emergencyContact,
+          image: updates.image,
+        })
+        .eq("id", user.id)
 
-    // Update in mock database
-    const userIndex = mockUsers.findIndex((u) => u.id === user.id)
-    if (userIndex !== -1) {
-      mockUsers[userIndex] = updatedUser
+      if (error) throw error
+
+      await loadUserProfile(user.id)
+      return true
+    } catch (error) {
+      console.error("Update profile error:", error)
+      return false
     }
   }
 
@@ -242,19 +241,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       if (!user) return false
 
-      // Simulate payment processing
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const { error } = await supabase.from("profiles").update({ verification_status: "pending" }).eq("id", user.id)
 
-      const updatedUser = { ...user, verificationStatus: "pending" as const }
-      setUser(updatedUser)
-      localStorage.setItem("roomy_user", JSON.stringify(updatedUser))
+      if (error) throw error
 
-      // Update in mock database
-      const userIndex = mockUsers.findIndex((u) => u.id === user.id)
-      if (userIndex !== -1) {
-        mockUsers[userIndex] = updatedUser
-      }
-
+      await loadUserProfile(user.id)
       return true
     } catch (error) {
       console.error("Verification request error:", error)
@@ -264,25 +255,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyPhone = async (phone: string, code: string): Promise<boolean> => {
     try {
-      // Mock SMS verification - accept "123456" as valid code
-      if (code === "123456") {
-        return true
-      }
-      return false
+      const { error } = await supabase.auth.verifyOtp({
+        phone,
+        token: code,
+        type: "sms",
+      })
+
+      if (error) throw error
+      return true
     } catch (error) {
       console.error("Phone verification error:", error)
       return false
     }
   }
 
-  if (loading) {
-    return <div>Loading...</div>
-  }
-
   return (
     <AuthContext.Provider
       value={{
         user,
+        loading,
         signIn,
         signUp,
         signInWithGoogle,

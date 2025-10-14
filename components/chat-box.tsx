@@ -1,269 +1,245 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
+import { MessageCircle, X, Send, Phone, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { MessageCircle, X, Send, Phone, Clock, User } from "lucide-react"
 
-type Message = {
-  id: number
+interface Message {
+  id: string
   text: string
-  sender: "user" | "support"
+  sender: "user" | "bot"
   timestamp: Date
-  status?: "sent" | "delivered" | "read"
 }
 
 export default function ChatBox() {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: 1,
-      text: "Hello! I'm here to help you with any questions about Roomy. How can I assist you today?",
-      sender: "support",
+      id: "1",
+      text: "Hello! I'm your Roomy assistant. How can I help you today?",
+      sender: "bot",
       timestamp: new Date(),
-      status: "delivered",
     },
   ])
-  const [inputMessage, setInputMessage] = useState("")
+  const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
-  const [supportAgent] = useState({
-    name: "Sarah K.",
-    image: "/images/support-agent.png",
-    status: "online",
-    responseTime: "Usually responds in a few minutes",
-  })
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const handleSendMessage = () => {
-    if (inputMessage.trim()) {
-      const newMessage: Message = {
-        id: Date.now(),
-        text: inputMessage,
-        sender: "user",
-        timestamp: new Date(),
-        status: "sent",
-      }
-      setMessages((prev) => [...prev, newMessage])
-      setInputMessage("")
-
-      // Simulate typing indicator
-      setIsTyping(true)
-
-      // Simulate a response from support
-      setTimeout(() => {
-        setIsTyping(false)
-        const supportMessage: Message = {
-          id: Date.now() + 1,
-          text: getSupportResponse(inputMessage),
-          sender: "support",
-          timestamp: new Date(),
-          status: "delivered",
-        }
-        setMessages((prev) => [...prev, supportMessage])
-      }, 2000)
-    }
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
-  const getSupportResponse = (userMessage: string): string => {
-    const message = userMessage.toLowerCase()
-
-    if (message.includes("booking") || message.includes("reservation")) {
-      return "I can help you with booking questions! You can view and manage your bookings in your account dashboard. Is there a specific booking you need help with?"
-    } else if (message.includes("payment") || message.includes("refund")) {
-      return "For payment and refund inquiries, I can connect you with our billing team. What specific payment issue are you experiencing?"
-    } else if (message.includes("cancel")) {
-      return "I understand you need help with cancellation. Please note our cancellation policy varies by property. Can you share your booking reference number?"
-    } else if (message.includes("host") || message.includes("property")) {
-      return "I can help with host and property related questions. Are you looking to become a host or do you have questions about a specific property?"
-    } else {
-      return "Thank you for your message! I'm here to help with any questions about bookings, payments, properties, or general support. What would you like to know more about?"
-    }
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
-    }
-  }
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  }
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   const quickActions = [
-    "I need help with my booking",
-    "Payment and billing questions",
-    "How to become a host",
-    "Property availability",
-    "Cancellation policy",
+    { label: "Find Properties", value: "I want to find a property" },
+    { label: "List My Property", value: "I want to list my property" },
+    { label: "Booking Help", value: "I need help with my booking" },
+    { label: "Payment Issues", value: "I have a payment question" },
   ]
 
+  const handleSendMessage = () => {
+    if (!inputValue.trim()) return
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: inputValue,
+      sender: "user",
+      timestamp: new Date(),
+    }
+
+    setMessages((prev) => [...prev, userMessage])
+    setInputValue("")
+    setIsTyping(true)
+
+    // Simulate bot response
+    setTimeout(
+      () => {
+        const botResponse = generateBotResponse(inputValue)
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: botResponse,
+          sender: "bot",
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, botMessage])
+        setIsTyping(false)
+      },
+      1000 + Math.random() * 1000,
+    )
+  }
+
+  const generateBotResponse = (userInput: string): string => {
+    const input = userInput.toLowerCase()
+
+    if (input.includes("book") || input.includes("reservation")) {
+      return "I can help you with bookings! You can browse properties on our Explore page. Once you find a property you like, click 'Book Now' and follow the steps. Need help finding something specific?"
+    } else if (input.includes("list") || input.includes("host")) {
+      return "Interested in becoming a host? That's great! Visit our 'Become a Host' page to get started. You can list your property in just a few minutes. Would you like me to guide you through the process?"
+    } else if (input.includes("payment") || input.includes("price")) {
+      return "For payment questions, we accept multiple payment methods including mobile money, cards, and bank transfers. You can view detailed pricing on each property listing. Do you have a specific payment concern?"
+    } else if (input.includes("cancel") || input.includes("refund")) {
+      return "Our cancellation policy varies by property. Check the specific cancellation terms on your booking confirmation. For immediate assistance, call us at +256 700 123 456 or visit our Help Center."
+    } else if (input.includes("location") || input.includes("where")) {
+      return "We have properties across Uganda! Popular locations include Kampala, Entebbe, Jinja, Mbarara, and Fort Portal. You can filter by location on our Explore page. Which area interests you?"
+    } else {
+      return "I'm here to help! You can ask me about finding properties, listing your property, bookings, payments, or any other questions. What would you like to know?"
+    }
+  }
+
+  const handleQuickAction = (value: string) => {
+    setInputValue(value)
+    handleSendMessage()
+  }
+
+  const handleClose = () => {
+    setIsOpen(false)
+  }
+
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      {isOpen ? (
-        <Card className="w-80 md:w-96 h-[500px] flex flex-col shadow-2xl">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 bg-primary text-primary-foreground rounded-t-lg">
-            <div className="flex items-center space-x-3">
-              <Avatar className="w-8 h-8">
-                <AvatarImage src={supportAgent.image || "/placeholder.svg"} alt={supportAgent.name} />
-                <AvatarFallback>
-                  <User className="w-4 h-4" />
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <CardTitle className="text-sm font-medium">{supportAgent.name}</CardTitle>
-                <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span className="text-xs opacity-90">{supportAgent.status}</span>
+    <>
+      {/* Chat Toggle Button */}
+      {!isOpen && (
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg hover:scale-110 transition-transform"
+          size="icon"
+        >
+          <MessageCircle className="h-6 w-6" />
+          <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center text-xs text-white animate-pulse">
+            1
+          </span>
+        </Button>
+      )}
+
+      {/* Chat Window */}
+      {isOpen && (
+        <Card className="fixed bottom-6 right-6 z-50 w-[380px] h-[600px] shadow-2xl flex flex-col">
+          {/* Header */}
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10 border-2 border-white">
+                  <AvatarImage src="/images/support-agent.png" alt="Support" />
+                  <AvatarFallback>RS</AvatarFallback>
+                </Avatar>
+                <div>
+                  <CardTitle className="text-lg">Roomy Support</CardTitle>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="h-2 w-2 bg-green-400 rounded-full animate-pulse" />
+                    <span>Online • Avg. response: 2 min</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
-              >
-                <Phone className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
-                onClick={() => setIsOpen(false)}
-              >
-                <X className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-white hover:bg-white/20"
+                  onClick={() => window.open("tel:+256700123456")}
+                >
+                  <Phone className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-white hover:bg-white/20"
+                  onClick={handleClose}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </CardHeader>
 
-          <div className="flex-1 flex flex-col">
-            {/* Support Info */}
-            <div className="px-4 py-2 bg-muted/50 border-b">
-              <div className="flex items-center text-xs text-muted-foreground">
-                <Clock className="w-3 h-3 mr-1" />
-                {supportAgent.responseTime}
-              </div>
-            </div>
-
-            <CardContent className="flex-1 p-0">
-              <ScrollArea className="h-full px-4 py-3">
-                <div className="space-y-4">
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
-                    >
-                      <div
-                        className={`flex items-end space-x-2 max-w-[80%] ${message.sender === "user" ? "flex-row-reverse space-x-reverse" : ""}`}
-                      >
-                        {message.sender === "support" && (
-                          <Avatar className="w-6 h-6">
-                            <AvatarImage src={supportAgent.image || "/placeholder.svg"} alt="Support" />
-                            <AvatarFallback className="text-xs">S</AvatarFallback>
-                          </Avatar>
-                        )}
-                        <div
-                          className={`rounded-lg px-3 py-2 ${
-                            message.sender === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
-                          }`}
-                        >
-                          <p className="text-sm">{message.text}</p>
-                          <div className="flex items-center justify-between mt-1">
-                            <span className="text-xs opacity-70">{formatTime(message.timestamp)}</span>
-                            {message.sender === "user" && message.status && (
-                              <Badge variant="secondary" className="text-xs ml-2">
-                                {message.status}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {isTyping && (
-                    <div className="flex justify-start">
-                      <div className="flex items-end space-x-2">
-                        <Avatar className="w-6 h-6">
-                          <AvatarImage src={supportAgent.image || "/placeholder.svg"} alt="Support" />
-                          <AvatarFallback className="text-xs">S</AvatarFallback>
-                        </Avatar>
-                        <div className="bg-muted rounded-lg px-3 py-2">
-                          <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                            <div
-                              className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
-                              style={{ animationDelay: "0.1s" }}
-                            ></div>
-                            <div
-                              className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
-                              style={{ animationDelay: "0.2s" }}
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+          {/* Messages Area */}
+          <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.map((message) => (
+              <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  className={`max-w-[80%] rounded-lg p-3 ${
+                    message.sender === "user" ? "bg-blue-600 text-white" : "bg-muted text-foreground"
+                  }`}
+                >
+                  <p className="text-sm">{message.text}</p>
+                  <p
+                    className={`text-xs mt-1 ${message.sender === "user" ? "text-blue-100" : "text-muted-foreground"}`}
+                  >
+                    {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </p>
                 </div>
-              </ScrollArea>
-            </CardContent>
+              </div>
+            ))}
+
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="bg-muted rounded-lg p-3">
+                  <div className="flex gap-1">
+                    <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce" />
+                    <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce animation-delay-100" />
+                    <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce animation-delay-200" />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Quick Actions */}
             {messages.length === 1 && (
-              <div className="px-4 py-2 border-t bg-muted/30">
-                <p className="text-xs text-muted-foreground mb-2">Quick actions:</p>
-                <div className="flex flex-wrap gap-1">
-                  {quickActions.slice(0, 3).map((action, index) => (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground text-center">Quick actions:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {quickActions.map((action) => (
                     <Button
-                      key={index}
+                      key={action.label}
                       variant="outline"
                       size="sm"
-                      className="text-xs h-6 px-2 bg-transparent"
-                      onClick={() => setInputMessage(action)}
+                      className="text-xs h-auto py-2 bg-transparent"
+                      onClick={() => handleQuickAction(action.value)}
                     >
-                      {action}
+                      {action.label}
                     </Button>
                   ))}
                 </div>
               </div>
             )}
 
-            <CardFooter className="p-3 border-t">
-              <div className="flex w-full space-x-2">
-                <Input
-                  type="text"
-                  placeholder="Type your message..."
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="flex-1"
-                />
-                <Button onClick={handleSendMessage} disabled={!inputMessage.trim()} size="icon">
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardFooter>
+            <div ref={messagesEndRef} />
+          </CardContent>
+
+          {/* Input Area */}
+          <div className="p-4 border-t">
+            <div className="flex gap-2">
+              <Input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                placeholder="Type your message..."
+                className="flex-1"
+              />
+              <Button onClick={handleSendMessage} size="icon">
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex items-center justify-center gap-4 mt-3 text-xs text-muted-foreground">
+              <a href="tel:+256700123456" className="flex items-center gap-1 hover:text-primary">
+                <Phone className="h-3 w-3" />
+                <span>+256 700 123 456</span>
+              </a>
+              <a href="mailto:support@roomy.ug" className="flex items-center gap-1 hover:text-primary">
+                <Mail className="h-3 w-3" />
+                <span>support@roomy.ug</span>
+              </a>
+            </div>
           </div>
         </Card>
-      ) : (
-        <Button
-          onClick={() => setIsOpen(true)}
-          className="rounded-full w-14 h-14 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-          size="icon"
-        >
-          <MessageCircle className="w-6 h-6" />
-        </Button>
       )}
-    </div>
+    </>
   )
 }
 
-// Named export for compatibility
 export { ChatBox }

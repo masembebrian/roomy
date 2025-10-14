@@ -1,223 +1,215 @@
-import Header from "@/components/header"
+"use client"
+
+import { useState, useEffect } from "react"
+import { Header } from "@/components/header"
 import Footer from "@/components/footer"
-import SearchBar from "@/components/search-bar"
-import ApartmentList from "@/components/apartment-list"
-import Testimonials from "@/components/testimonials"
+import { SearchBar } from "@/components/search-bar"
+import { ApartmentList } from "@/components/apartment-list"
+import { Testimonials } from "@/components/testimonials"
 import ChatBox from "@/components/chat-box"
+import ImageTrail from "@/components/image-trail"
+import InfiniteScrollTrail from "@/components/infinite-scroll-trail"
+import MouseImageTrail from "@/components/mouse-image-trail"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Star, MapPin, Users, Shield, Award, Globe, Heart } from "lucide-react"
-import Image from "next/image"
+import { MapPin, Users, Home, Star, ArrowRight, Sparkles } from "lucide-react"
 import Link from "next/link"
 
-export default function HomePage() {
-  const features = [
-    {
-      icon: Shield,
-      title: "Verified Properties",
-      description: "All properties are verified for safety and quality",
-    },
-    {
-      icon: Award,
-      title: "Best Prices",
-      description: "Competitive rates with no hidden fees",
-    },
-    {
-      icon: Globe,
-      title: "Local Experiences",
-      description: "Discover authentic Ugandan culture and activities",
-    },
-    {
-      icon: Heart,
-      title: "24/7 Support",
-      description: "Round-the-clock customer service in multiple languages",
-    },
-  ]
+const heroImages = [
+  {
+    id: "1",
+    image: "/images/kampala-apartment.png",
+    title: "Luxury Living in Kampala",
+    subtitle: "Experience comfort in the heart of the city",
+  },
+  {
+    id: "2",
+    image: "/images/entebbe-studio.png",
+    title: "Serene Entebbe Retreats",
+    subtitle: "Wake up to beautiful lake views",
+  },
+  {
+    id: "3",
+    image: "/images/jinja-family-home.png",
+    title: "Spacious Family Homes",
+    subtitle: "Perfect for your entire family",
+  },
+  {
+    id: "4",
+    image: "/images/mukono-villa.png",
+    title: "Elegant Villas",
+    subtitle: "Privacy and luxury combined",
+  },
+]
 
-  const popularDestinations = [
-    {
-      name: "Kampala",
-      properties: 150,
-      image: "/images/kampala-apartment.png",
-      description: "Uganda's vibrant capital city",
-    },
-    {
-      name: "Entebbe",
-      properties: 45,
-      image: "/images/entebbe-studio.png",
-      description: "Gateway to Uganda, near the airport",
-    },
-    {
-      name: "Jinja",
-      properties: 32,
-      image: "/images/jinja-family-home.png",
-      description: "Adventure capital of East Africa",
-    },
-    {
-      name: "Mukono",
-      properties: 28,
-      image: "/images/mukono-villa.png",
-      description: "Peaceful suburban living",
-    },
-  ]
+const trailImages = [
+  "/images/kampala-apartment.png",
+  "/images/entebbe-studio.png",
+  "/images/jinja-family-home.png",
+  "/images/mukono-villa.png",
+  "/images/fort-portal-cottage.png",
+  "/images/white-water-rafting.png",
+  "/images/gorilla-trekking.png",
+  "/images/cooking-class.png",
+]
+
+const experienceImages = [
+  { id: "1", image: "/images/white-water-rafting.png", title: "White Water Rafting" },
+  { id: "2", image: "/images/gorilla-trekking.png", title: "Gorilla Trekking" },
+  { id: "3", image: "/images/cooking-class.png", title: "Cooking Classes" },
+  { id: "4", image: "/images/safari-sunset.png", title: "Safari Adventures" },
+  { id: "5", image: "/images/street-art-kampala.png", title: "Street Art Tours" },
+  { id: "6", image: "/images/lake-victoria-fishing.png", title: "Fishing Trips" },
+]
+
+export default function HomePage() {
+  const [mouseTrailEnabled, setMouseTrailEnabled] = useState(false)
+
+  useEffect(() => {
+    // Enable mouse trail after a short delay to show the feature
+    const timer = setTimeout(() => {
+      setMouseTrailEnabled(true)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen flex flex-col">
       <Header />
 
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Find Your Perfect Stay in Uganda
-            </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Discover unique accommodations and authentic experiences across the Pearl of Africa. From bustling Kampala
-              to serene lakeshores.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
-              <Badge variant="secondary" className="text-sm px-4 py-2">
-                <MapPin className="w-4 h-4 mr-2" />
-                500+ Properties
-              </Badge>
-              <Badge variant="secondary" className="text-sm px-4 py-2">
-                <Users className="w-4 h-4 mr-2" />
-                10,000+ Happy Guests
-              </Badge>
-              <Badge variant="secondary" className="text-sm px-4 py-2">
-                <Star className="w-4 h-4 mr-2" />
-                4.8 Average Rating
-              </Badge>
+      {/* Mouse Trail Effect - Can be toggled */}
+      <MouseImageTrail images={trailImages} maxTrailLength={15} enabled={mouseTrailEnabled} />
+
+      <main className="flex-1">
+        {/* Hero Section with Image Trail Carousel */}
+        <section className="relative pt-20">
+          <ImageTrail items={heroImages} autoplay={true} interval={5000} />
+
+          {/* Search Bar Overlay */}
+          <div className="absolute bottom-8 left-0 right-0 z-20 px-4">
+            <div className="container mx-auto max-w-4xl">
+              <SearchBar />
             </div>
           </div>
+        </section>
 
-          {/* Search Bar */}
-          <div className="max-w-4xl mx-auto">
-            <SearchBar />
-          </div>
-        </div>
-      </section>
-
-      {/* Popular Destinations */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Popular Destinations</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Explore the most sought-after locations across Uganda
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {popularDestinations.map((destination) => (
-              <Link key={destination.name} href={`/explore?location=${destination.name.toLowerCase()}`}>
-                <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer">
-                  <div className="relative overflow-hidden rounded-t-lg">
-                    <Image
-                      src={destination.image || "/placeholder.svg"}
-                      alt={destination.name}
-                      width={300}
-                      height={200}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                    <div className="absolute bottom-4 left-4 text-white">
-                      <h3 className="text-xl font-semibold">{destination.name}</h3>
-                      <p className="text-sm opacity-90">{destination.properties} properties</p>
-                    </div>
-                  </div>
-                  <CardContent className="p-4">
-                    <p className="text-sm text-muted-foreground">{destination.description}</p>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16 bg-muted/50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Why Choose Roomy?</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              We're committed to providing the best accommodation experience in Uganda
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className="text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <feature.icon className="w-8 h-8 text-primary" />
+        {/* Stats Banner */}
+        <section className="bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/10 py-8">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              <div>
+                <div className="flex items-center justify-center mb-2">
+                  <Home className="w-6 h-6 text-primary mr-2" />
+                  <span className="text-3xl font-bold">1,500+</span>
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
+                <p className="text-sm text-muted-foreground">Properties</p>
               </div>
-            ))}
+              <div>
+                <div className="flex items-center justify-center mb-2">
+                  <Users className="w-6 h-6 text-primary mr-2" />
+                  <span className="text-3xl font-bold">50,000+</span>
+                </div>
+                <p className="text-sm text-muted-foreground">Happy Guests</p>
+              </div>
+              <div>
+                <div className="flex items-center justify-center mb-2">
+                  <MapPin className="w-6 h-6 text-primary mr-2" />
+                  <span className="text-3xl font-bold">25+</span>
+                </div>
+                <p className="text-sm text-muted-foreground">Cities</p>
+              </div>
+              <div>
+                <div className="flex items-center justify-center mb-2">
+                  <Star className="w-6 h-6 text-primary mr-2" />
+                  <span className="text-3xl font-bold">4.8</span>
+                </div>
+                <p className="text-sm text-muted-foreground">Average Rating</p>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Featured Properties */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-12">
+        {/* Interactive Gallery CTA */}
+        <section className="py-8 bg-gradient-to-br from-primary/5 to-secondary/5">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-6 bg-card rounded-2xl shadow-lg border">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-primary animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold">Experience Interactive Galleries</h3>
+                  <p className="text-muted-foreground">
+                    See properties come alive with mouse-following animations and 3D effects
+                  </p>
+                </div>
+              </div>
+              <Link href="/gallery">
+                <Button size="lg" className="gap-2">
+                  Try It Now
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Featured Properties */}
+        <section className="py-16 container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-3xl font-bold mb-4">Featured Properties</h2>
-              <p className="text-muted-foreground">Handpicked accommodations for an exceptional stay</p>
+              <h2 className="text-3xl font-bold mb-2">Featured Properties</h2>
+              <p className="text-muted-foreground">Discover our most popular listings</p>
             </div>
             <Link href="/explore">
-              <Button variant="outline">View All Properties</Button>
+              <Button variant="outline" className="gap-2 bg-transparent">
+                View All
+                <ArrowRight className="w-4 h-4" />
+              </Button>
             </Link>
           </div>
+          <ApartmentList limit={8} />
+        </section>
 
-          <ApartmentList />
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-16 bg-muted/50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">What Our Guests Say</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Real experiences from travelers who've stayed with us
-            </p>
+        {/* Experiences Section with Infinite Scroll */}
+        <section className="py-16 bg-muted/30">
+          <div className="container mx-auto px-4 mb-8">
+            <h2 className="text-3xl font-bold mb-2">Popular Experiences</h2>
+            <p className="text-muted-foreground">Discover unique activities hosted by local experts</p>
           </div>
+          <InfiniteScrollTrail items={experienceImages} speed={1} direction="left" />
+        </section>
 
+        {/* Testimonials */}
+        <section className="py-16 container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">What Our Guests Say</h2>
           <Testimonials />
-        </div>
-      </section>
+        </section>
 
-      {/* Call to Action */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Start Your Uganda Adventure?</h2>
-          <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-            Join thousands of travelers who've discovered the beauty of Uganda through Roomy
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/explore">
-              <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
-                Explore Properties
-              </Button>
-            </Link>
-            <Link href="/become-host">
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white text-white hover:bg-white hover:text-blue-600 bg-transparent"
-              >
-                Become a Host
-              </Button>
-            </Link>
+        {/* CTA Section */}
+        <section className="py-16 bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-4xl font-bold mb-4">Ready to Start Your Journey?</h2>
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Join thousands of travelers who have found their perfect stay in Uganda
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/explore">
+                <Button size="lg" className="gap-2">
+                  Explore Properties
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+              <Link href="/become-host">
+                <Button size="lg" variant="outline" className="gap-2 bg-transparent">
+                  Become a Host
+                  <Home className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
       <Footer />
       <ChatBox />
