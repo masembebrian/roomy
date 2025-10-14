@@ -3,9 +3,9 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import Header from "@/components/header"
+import { Header } from "@/components/header"
 import Footer from "@/components/footer"
-import SearchBar from "@/components/search-bar"
+import { SearchBar } from "@/components/search-bar"
 import { ApartmentList } from "@/components/apartment-list"
 import { Testimonials } from "@/components/testimonials"
 import MouseImageTrail from "@/components/mouse-image-trail"
@@ -34,7 +34,7 @@ const heroImages = [
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [isTrailEnabled, setIsTrailEnabled] = useState(true)
+  const [isTrailEnabled] = useState(true)
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % heroImages.length)
