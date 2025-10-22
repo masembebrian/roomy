@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 // Supabase configuration
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://tbzandmtoflteqffueii.supabase.co"
@@ -6,16 +6,24 @@ const supabaseAnonKey =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiemFuZG10b2ZsdGVxZmZ1ZWlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzOTgxNDAsImV4cCI6MjA3NTk3NDE0MH0.zKdLAUWG941B0YLhIC3TIgmf0NIy2EfrAW4GJdP96Fg"
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: typeof window !== "undefined",
-    autoRefreshToken: typeof window !== "undefined",
-  },
-})
+// Create a singleton instance
+let supabaseInstance: ReturnType<typeof createClientComponentClient> | null = null
+
+export function getSupabase() {
+  if (!supabaseInstance) {
+    supabaseInstance = createClientComponentClient({
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    })
+  }
+  return supabaseInstance
+}
+
+export const supabase = getSupabase()
 
 // Helper to check if Supabase is properly configured
-export const isSupabaseConfigured = () => {
-  return supabaseUrl && supabaseAnonKey && supabaseUrl !== "https://placeholder.supabase.co"
+export function isSupabaseConfigured(): boolean {
+  return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 }
 
 export type Database = {

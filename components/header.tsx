@@ -4,7 +4,6 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -47,23 +46,14 @@ import {
   Globe,
 } from "lucide-react"
 import { useTheme } from "next-themes"
-
-// Mock user data - in real app this would come from auth context
-const mockUser = {
-  id: "1",
-  name: "John Doe",
-  email: "john@example.com",
-  avatar: "/images/default-avatar.png",
-  isHost: true,
-  notifications: 3,
-  isAuthenticated: true,
-}
+import { useAuth } from "@/lib/auth"
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { theme, setTheme } = useTheme()
+  const { user, signOut } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
 
@@ -80,6 +70,10 @@ export default function Header() {
     if (searchQuery.trim()) {
       router.push(`/explore?search=${encodeURIComponent(searchQuery)}`)
     }
+  }
+
+  const handleSignOut = async () => {
+    await signOut()
   }
 
   const navigationItems = [
@@ -143,6 +137,16 @@ export default function Header() {
     },
   ]
 
+  const getUserInitials = () => {
+    if (!user?.name) return "U"
+    return user.name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
   return (
     <header
       className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
@@ -151,19 +155,18 @@ export default function Header() {
     >
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <Image src="/images/roomy-logo.png" alt="Roomy" width={32} height={32} className="w-8 h-8" />
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <div className="w-8 h-8 bg-gradient-to-br from-pink-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+              <span className="text-white font-bold text-lg">R</span>
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
               Roomy
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
             <NavigationMenu>
               <NavigationMenuList>
-                {/* Explore & Experiences */}
                 {navigationItems.map((item) => (
                   <NavigationMenuItem key={item.title}>
                     <Link href={item.href} legacyBehavior passHref>
@@ -178,7 +181,6 @@ export default function Header() {
                   </NavigationMenuItem>
                 ))}
 
-                {/* Hosting Dropdown */}
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Hosting</NavigationMenuTrigger>
                   <NavigationMenuContent>
@@ -217,7 +219,6 @@ export default function Header() {
                   </NavigationMenuContent>
                 </NavigationMenuItem>
 
-                {/* Support Dropdown */}
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Support</NavigationMenuTrigger>
                   <NavigationMenuContent>
@@ -245,7 +246,6 @@ export default function Header() {
             </NavigationMenu>
           </div>
 
-          {/* Search Bar - Desktop */}
           <div className="hidden md:flex flex-1 max-w-sm mx-8">
             <form onSubmit={handleSearch} className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -259,9 +259,7 @@ export default function Header() {
             </form>
           </div>
 
-          {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
-            {/* Theme Toggle */}
             <Button
               variant="ghost"
               size="icon"
@@ -273,7 +271,6 @@ export default function Header() {
               <span className="sr-only">Toggle theme</span>
             </Button>
 
-            {/* Language Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="hidden md:inline-flex">
@@ -289,35 +286,19 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {mockUser.isAuthenticated ? (
+            {user ? (
               <>
-                {/* Notifications */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="relative">
                       <Bell className="h-4 w-4" />
-                      {mockUser.notifications > 0 && (
-                        <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs">
-                          {mockUser.notifications}
-                        </Badge>
-                      )}
+                      <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs">0</Badge>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-80">
                     <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium">Booking Confirmed</p>
-                        <p className="text-xs text-muted-foreground">Your stay in Kampala has been confirmed</p>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium">New Message</p>
-                        <p className="text-xs text-muted-foreground">Sarah sent you a message about your booking</p>
-                      </div>
-                    </DropdownMenuItem>
+                    <div className="p-4 text-sm text-muted-foreground text-center">No new notifications</div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link href="/notifications">View all notifications</Link>
@@ -325,21 +306,22 @@ export default function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={mockUser.avatar || "/placeholder.svg"} alt={mockUser.name} />
-                        <AvatarFallback>{mockUser.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={user.image || "/placeholder.svg"} alt={user.name} />
+                        <AvatarFallback className="bg-gradient-to-br from-pink-600 to-purple-600 text-white">
+                          {getUserInitials()}
+                        </AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end" forceMount>
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{mockUser.name}</p>
-                        <p className="text-xs leading-none text-muted-foreground">{mockUser.email}</p>
+                        <p className="text-sm font-medium leading-none">{user.name}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user.email || user.phone}</p>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
@@ -361,23 +343,19 @@ export default function Header() {
                         Favorites
                       </Link>
                     </DropdownMenuItem>
-                    {mockUser.isHost && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href="/host-dashboard">
-                            <Home className="mr-2 h-4 w-4" />
-                            Host Dashboard
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/list-property">
-                            <MapPin className="mr-2 h-4 w-4" />
-                            List Property
-                          </Link>
-                        </DropdownMenuItem>
-                      </>
-                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/host-dashboard">
+                        <Home className="mr-2 h-4 w-4" />
+                        Host Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/list-property">
+                        <MapPin className="mr-2 h-4 w-4" />
+                        List Property
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link href="/settings">
@@ -385,7 +363,7 @@ export default function Header() {
                         Settings
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="mr-2 h-4 w-4" />
                       Log out
                     </DropdownMenuItem>
@@ -403,7 +381,6 @@ export default function Header() {
               </div>
             )}
 
-            {/* Mobile Menu */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="lg:hidden">
@@ -412,7 +389,6 @@ export default function Header() {
               </SheetTrigger>
               <SheetContent side="right" className="w-80">
                 <div className="flex flex-col space-y-6 mt-6">
-                  {/* Mobile Search */}
                   <form onSubmit={handleSearch} className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                     <Input
@@ -424,7 +400,6 @@ export default function Header() {
                     />
                   </form>
 
-                  {/* Mobile Navigation */}
                   <nav className="flex flex-col space-y-4">
                     <Link
                       href="/explore"
@@ -474,7 +449,6 @@ export default function Header() {
                     </div>
                   </nav>
 
-                  {/* Mobile Theme Toggle */}
                   <div className="border-t pt-4">
                     <Button
                       variant="ghost"
@@ -504,5 +478,4 @@ export default function Header() {
   )
 }
 
-// Named export for compatibility
 export { Header }

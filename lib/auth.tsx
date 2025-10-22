@@ -1,7 +1,10 @@
 "use client"
 
-import { useState, useEffect, createContext, useContext, type ReactNode } from "react"
+import type React from "react"
+import { createContext, useContext, useEffect, useState } from "react"
+import type { User as SupabaseUser } from "@supabase/supabase-js"
 import { supabase } from "./supabase"
+import { useRouter } from "next/navigation"
 
 interface User {
   id: string
@@ -24,15 +27,18 @@ interface User {
 interface AuthContextType {
   user: User | null
   loading: boolean
-  signIn: (credentials: { email?: string; phone?: string; password?: string; method: string }) => Promise<boolean>
+  signIn: (credentials: { email?: string; phone?: string; password?: string; method: string }) => Promise<{
+    success: boolean
+    error?: string
+  }>
   signUp: (userData: {
     name: string
     email?: string
     phone?: string
     password?: string
     method: "email" | "google" | "phone"
-  }) => Promise<boolean>
-  signInWithGoogle: () => Promise<boolean>
+  }) => Promise<{ success: boolean; error?: string }>
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<User>) => Promise<boolean>
   requestVerification: () => Promise<boolean>
@@ -41,26 +47,37 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        loadUserProfile(session.user.id)
-      } else {
+    const initAuth = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+
+        if (session?.user) {
+          await loadUserProfile(session.user)
+        }
+      } catch (error) {
+        console.error("Error initializing auth:", error)
+      } finally {
         setLoading(false)
       }
-    })
+    }
 
-    // Listen for auth changes
+    initAuth()
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session?.user?.email)
+
       if (session?.user) {
-        await loadUserProfile(session.user.id)
+        await loadUserProfile(session.user)
       } else {
         setUser(null)
       }
@@ -70,9 +87,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const loadUserProfile = async (userId: string) => {
+  const loadUserProfile = async (authUser: SupabaseUser) => {
     try {
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", authUser.id).single()
+
+      if (error && error.code === "PGRST116") {
+        // Profile doesn't exist, create it
+        const provider = authUser.app_metadata?.provider || "email"
+        const newProfile = {
+          id: authUser.id,
+          name:
+            authUser.user_metadata?.full_name ||
+            authUser.user_metadata?.name ||
+            authUser.email?.split("@")[0] ||
+            "User",
+          email: authUser.email || null,
+          phone: authUser.phone || null,
+          image: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || null,
+          sign_up_method: provider === "google" ? "google" : authUser.phone ? "phone" : "email",
+          verified: authUser.email_confirmed_at ? true : false,
+          verification_status: "none",
+          join_date: new Date().toISOString(),
+        }
+
+        const { data: createdProfile, error: createError } = await supabase
+          .from("profiles")
+          .insert(newProfile)
+          .select()
+          .single()
+
+        if (createError) {
+          console.error("Error creating profile:", createError)
+          throw createError
+        }
+
+        setUser({
+          id: createdProfile.id,
+          name: createdProfile.name,
+          email: createdProfile.email || undefined,
+          phone: createdProfile.phone || undefined,
+          image: createdProfile.image || undefined,
+          signUpMethod: createdProfile.sign_up_method,
+          verified: createdProfile.verified,
+          verificationStatus: createdProfile.verification_status,
+          joinDate: createdProfile.join_date,
+        })
+        return
+      }
 
       if (error) throw error
 
@@ -83,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: data.email || undefined,
           phone: data.phone || undefined,
           image: data.image || undefined,
-          signUpMethod: data.sign_up_method as "email" | "google" | "phone",
+          signUpMethod: data.sign_up_method,
           verified: data.verified,
           verificationStatus: data.verification_status,
           joinDate: data.join_date,
@@ -105,7 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     phone?: string
     password?: string
     method: string
-  }): Promise<boolean> => {
+  }): Promise<{ success: boolean; error?: string }> => {
     try {
       if (credentials.method === "email" && credentials.email && credentials.password) {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -113,10 +174,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password: credentials.password,
         })
 
-        if (error) throw error
+        if (error) return { success: false, error: error.message }
         if (data.user) {
-          await loadUserProfile(data.user.id)
-          return true
+          await loadUserProfile(data.user)
+          return { success: true }
         }
       } else if (credentials.method === "phone" && credentials.phone && credentials.password) {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -124,17 +185,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password: credentials.password,
         })
 
-        if (error) throw error
+        if (error) return { success: false, error: error.message }
         if (data.user) {
-          await loadUserProfile(data.user.id)
-          return true
+          await loadUserProfile(data.user)
+          return { success: true }
         }
       }
 
-      return false
-    } catch (error) {
+      return { success: false, error: "Invalid credentials" }
+    } catch (error: any) {
       console.error("Sign in error:", error)
-      return false
+      return { success: false, error: error.message || "An error occurred during sign in" }
     }
   }
 
@@ -144,7 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     phone?: string
     password?: string
     method: "email" | "google" | "phone"
-  }): Promise<boolean> => {
+  }): Promise<{ success: boolean; error?: string }> => {
     try {
       if (userData.method === "email" && userData.email && userData.password) {
         const { data, error } = await supabase.auth.signUp({
@@ -152,58 +213,109 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password: userData.password,
           options: {
             data: {
+              full_name: userData.name,
               name: userData.name,
-              sign_up_method: "email",
             },
           },
         })
 
-        if (error) throw error
-        return !!data.user
+        if (error) return { success: false, error: error.message }
+
+        if (data.user) {
+          await supabase.from("profiles").insert({
+            id: data.user.id,
+            name: userData.name,
+            email: userData.email,
+            sign_up_method: "email",
+            verified: false,
+            verification_status: "none",
+            join_date: new Date().toISOString(),
+          })
+
+          return { success: true }
+        }
       } else if (userData.method === "phone" && userData.phone && userData.password) {
         const { data, error } = await supabase.auth.signUp({
           phone: userData.phone,
           password: userData.password,
           options: {
             data: {
+              full_name: userData.name,
               name: userData.name,
-              sign_up_method: "phone",
             },
           },
         })
 
-        if (error) throw error
-        return !!data.user
+        if (error) return { success: false, error: error.message }
+
+        if (data.user) {
+          await supabase.from("profiles").insert({
+            id: data.user.id,
+            name: userData.name,
+            phone: userData.phone,
+            sign_up_method: "phone",
+            verified: false,
+            verification_status: "none",
+            join_date: new Date().toISOString(),
+          })
+
+          return { success: true }
+        }
       }
 
-      return false
-    } catch (error) {
+      return { success: false, error: "Invalid sign up method" }
+    } catch (error: any) {
       console.error("Sign up error:", error)
-      return false
+      return { success: false, error: error.message || "An error occurred during sign up" }
     }
   }
 
-  const signInWithGoogle = async (): Promise<boolean> => {
+  const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined
+
+      if (!redirectUrl) {
+        return { success: false, error: "Could not determine redirect URL" }
+      }
+
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
         },
       })
 
-      if (error) throw error
-      return !!data
-    } catch (error) {
+      if (error) {
+        console.error("Google OAuth error:", error)
+        return {
+          success: false,
+          error:
+            "Google sign-in requires additional setup. Please use email or phone sign-in, or contact support for assistance.",
+        }
+      }
+
+      return { success: true }
+    } catch (error: any) {
       console.error("Google sign in error:", error)
-      return false
+      return {
+        success: false,
+        error: "Unable to sign in with Google. Please try email or phone sign-in instead.",
+      }
     }
   }
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut()
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+
       setUser(null)
+      router.push("/auth/welcome")
+      router.refresh()
     } catch (error) {
       console.error("Sign out error:", error)
     }
@@ -229,7 +341,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error
 
-      await loadUserProfile(user.id)
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser()
+      if (authUser) {
+        await loadUserProfile(authUser)
+      }
       return true
     } catch (error) {
       console.error("Update profile error:", error)
@@ -245,7 +362,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error
 
-      await loadUserProfile(user.id)
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser()
+      if (authUser) {
+        await loadUserProfile(authUser)
+      }
       return true
     } catch (error) {
       console.error("Verification request error:", error)

@@ -87,7 +87,7 @@ export default function ProfilePage() {
     setSuccess("")
 
     try {
-      updateProfile({
+      const result = await updateProfile({
         name: editForm.name,
         bio: editForm.bio,
         location: editForm.location,
@@ -100,9 +100,13 @@ export default function ProfilePage() {
         emergencyContact: editForm.emergencyContact,
       })
 
-      setSuccess("Profile updated successfully!")
-      setIsEditing(false)
-      setTimeout(() => setSuccess(""), 3000)
+      if (result) {
+        setSuccess("Profile updated successfully!")
+        setIsEditing(false)
+        setTimeout(() => setSuccess(""), 3000)
+      } else {
+        setError("Failed to update profile. Please try again.")
+      }
     } catch (err) {
       setError("Failed to update profile. Please try again.")
     } finally {
@@ -182,6 +186,20 @@ export default function ProfilePage() {
     }
   }
 
+  const getUserInitials = () => {
+    return user.name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  const formatJoinDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("en-US", { year: "numeric", month: "long" })
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -201,14 +219,15 @@ export default function ProfilePage() {
             </Alert>
           )}
 
-          {/* Profile Header */}
           <Card className="mb-8">
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-6">
                   <Avatar className="w-24 h-24">
-                    <AvatarImage src={user.image || "/images/default-avatar.png"} />
-                    <AvatarFallback className="text-2xl">{user.name[0]}</AvatarFallback>
+                    <AvatarImage src={user.image || "/placeholder.svg"} />
+                    <AvatarFallback className="text-2xl bg-gradient-to-br from-pink-600 to-purple-600 text-white">
+                      {getUserInitials()}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
@@ -222,7 +241,7 @@ export default function ProfilePage() {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        <span>Joined {user.joinDate}</span>
+                        <span>Joined {formatJoinDate(user.joinDate)}</span>
                       </div>
                       {user.location && (
                         <div className="flex items-center gap-1">
@@ -507,7 +526,7 @@ export default function ProfilePage() {
                         <Calendar className="w-5 h-5 text-muted-foreground" />
                         <div>
                           <p className="font-medium">Member Since</p>
-                          <p className="text-sm text-muted-foreground">{user.joinDate}</p>
+                          <p className="text-sm text-muted-foreground">{formatJoinDate(user.joinDate)}</p>
                         </div>
                       </div>
                     </div>
@@ -603,7 +622,6 @@ export default function ProfilePage() {
             </TabsContent>
           </Tabs>
 
-          {/* Danger Zone */}
           <Card className="border-destructive/20">
             <CardHeader>
               <CardTitle className="text-destructive">Danger Zone</CardTitle>

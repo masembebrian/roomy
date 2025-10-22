@@ -1,437 +1,496 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
-import ChatBox from "@/components/chat-box"
+import { useParams, useRouter } from "next/navigation"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Calendar } from "@/components/ui/calendar"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Star, Heart, MapPin, Users, Bed, Bath, Wifi, Share, ChevronLeft, ChevronRight } from "lucide-react"
+  Star,
+  MapPin,
+  Users,
+  Bed,
+  Bath,
+  Wifi,
+  Coffee,
+  Wind,
+  Tv,
+  Car,
+  Shield,
+  Heart,
+  Share2,
+  ChevronLeft,
+  ChevronRight,
+  CalendarIcon,
+  AlertCircle,
+} from "lucide-react"
 import { useAuth } from "@/lib/auth"
 import { supabase } from "@/lib/supabase"
-import { useToast } from "@/hooks/use-toast"
-import Image from "next/image"
+import { format, differenceInDays } from "date-fns"
 import type { DateRange } from "react-day-picker"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
-export default function ApartmentDetail({ params }: { params: { id: string } }) {
-  const { user } = useAuth()
+interface Apartment {
+  id: string
+  title: string
+  description: string
+  price: number
+  location: string
+  rating: number
+  reviewCount: number
+  images: string[]
+  bedrooms: number
+  bathrooms: number
+  guests: number
+  amenities: string[]
+  hostName: string
+  hostImage: string
+  hostJoined: string
+  instantBook: boolean
+}
+
+const apartments: Record<string, Apartment> = {
+  "1": {
+    id: "1",
+    title: "Modern Apartment in Kampala",
+    description:
+      "Beautiful modern apartment in the heart of Kampala with stunning city views. This spacious 2-bedroom apartment features contemporary furnishings, a fully equipped kitchen, and access to a rooftop terrace. Perfect for both business travelers and tourists looking to explore the vibrant capital city.",
+    price: 85,
+    location: "Kampala, Uganda",
+    rating: 4.8,
+    reviewCount: 124,
+    images: ["/images/kampala-apartment.png", "/images/entebbe-studio.png", "/images/jinja-family-home.png"],
+    bedrooms: 2,
+    bathrooms: 1,
+    guests: 4,
+    amenities: ["WiFi", "Kitchen", "Air conditioning", "TV", "Free parking", "Washer"],
+    hostName: "Sarah Johnson",
+    hostImage: "/images/host-sarah.png",
+    hostJoined: "2020",
+    instantBook: true,
+  },
+  "2": {
+    id: "2",
+    title: "Cozy Studio in Entebbe",
+    description:
+      "Charming studio apartment near Entebbe International Airport and Lake Victoria. This compact yet comfortable space is ideal for solo travelers or couples. Enjoy easy access to the beach, botanical gardens, and wildlife sanctuaries.",
+    price: 45,
+    location: "Entebbe, Uganda",
+    rating: 4.6,
+    reviewCount: 89,
+    images: ["/images/entebbe-studio.png", "/images/kampala-apartment.png", "/images/fort-portal-cottage.png"],
+    bedrooms: 1,
+    bathrooms: 1,
+    guests: 2,
+    amenities: ["WiFi", "Kitchen", "Air conditioning", "Beach access"],
+    hostName: "John Mugisha",
+    hostImage: "/images/host-john.png",
+    hostJoined: "2019",
+    instantBook: false,
+  },
+  "3": {
+    id: "3",
+    title: "Family Home in Jinja",
+    description:
+      "Spacious family home near the source of the Nile in Jinja. Perfect for adventure seekers and families looking to experience white-water rafting, kayaking, and other water sports. The house features a large garden, multiple bedrooms, and a welcoming atmosphere.",
+    price: 120,
+    location: "Jinja, Uganda",
+    rating: 4.9,
+    reviewCount: 156,
+    images: ["/images/jinja-family-home.png", "/images/mukono-villa.png", "/images/kampala-apartment.png"],
+    bedrooms: 4,
+    bathrooms: 3,
+    guests: 8,
+    amenities: ["WiFi", "Kitchen", "Garden", "Free parking", "Washer", "BBQ grill"],
+    hostName: "Emily Nakato",
+    hostImage: "/images/host-emily.png",
+    hostJoined: "2018",
+    instantBook: true,
+  },
+  "4": {
+    id: "4",
+    title: "Luxury Villa in Mukono",
+    description:
+      "Exclusive luxury villa with private pool and garden in Mukono. This elegant property offers privacy, comfort, and modern amenities. Ideal for those seeking a tranquil retreat while still being close to Kampala.",
+    price: 200,
+    location: "Mukono, Uganda",
+    rating: 5.0,
+    reviewCount: 67,
+    images: ["/images/mukono-villa.png", "/images/fort-portal-cottage.png", "/images/jinja-family-home.png"],
+    bedrooms: 3,
+    bathrooms: 2,
+    guests: 6,
+    amenities: ["WiFi", "Kitchen", "Pool", "Garden", "Free parking", "Air conditioning", "Security"],
+    hostName: "David Okello",
+    hostImage: "/images/host-david.png",
+    hostJoined: "2021",
+    instantBook: true,
+  },
+  "5": {
+    id: "5",
+    title: "Cottage in Fort Portal",
+    description:
+      "Rustic cottage with mountain views in Fort Portal, gateway to the Rwenzori Mountains and Queen Elizabeth National Park. Experience authentic Ugandan hospitality in this cozy retreat surrounded by nature.",
+    price: 65,
+    location: "Fort Portal, Uganda",
+    rating: 4.7,
+    reviewCount: 92,
+    images: ["/images/fort-portal-cottage.png", "/images/entebbe-studio.png", "/images/mukono-villa.png"],
+    bedrooms: 2,
+    bathrooms: 1,
+    guests: 4,
+    amenities: ["WiFi", "Kitchen", "Mountain view", "Fireplace", "Garden"],
+    hostName: "Grace Atim",
+    hostImage: "/images/host-grace.png",
+    hostJoined: "2020",
+    instantBook: false,
+  },
+}
+
+const amenityIcons: Record<string, any> = {
+  WiFi: Wifi,
+  Kitchen: Coffee,
+  "Air conditioning": Wind,
+  TV: Tv,
+  "Free parking": Car,
+  Security: Shield,
+}
+
+export default function ApartmentDetailsPage() {
+  const params = useParams()
   const router = useRouter()
-  const { toast } = useToast()
-  const [dateRange, setDateRange] = useState<DateRange | undefined>()
-  const [guests, setGuests] = useState(1)
+  const { user } = useAuth()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
-  const [showBookingDialog, setShowBookingDialog] = useState(false)
-  const [bookingDetails, setBookingDetails] = useState({
-    specialRequests: "",
-    arrivalTime: "",
-    purpose: "",
-  })
-  const [property, setProperty] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const [dateRange, setDateRange] = useState<DateRange | undefined>()
+  const [guests, setGuests] = useState(1)
+  const [showBookingForm, setShowBookingForm] = useState(false)
+  const [bookingLoading, setBookingLoading] = useState(false)
+  const [bookingError, setBookingError] = useState("")
+  const [bookingSuccess, setBookingSuccess] = useState(false)
+
+  const apartment = apartments[params.id as string]
 
   useEffect(() => {
-    loadProperty()
-  }, [params.id])
-
-  const loadProperty = async () => {
-    try {
-      const mockProperty = {
-        id: params.id,
-        title: "Modern Apartment in Kampala",
-        description: "A beautiful, modern apartment in the heart of Kampala. Perfect for travelers and digital nomads.",
-        price: 50,
-        images: ["/images/kampala-apartment.png", "/images/entebbe-studio.png", "/images/jinja-family-home.png"],
-        location: "Kampala Central, Uganda",
-        bedrooms: 2,
-        bathrooms: 1,
-        guests: 4,
-        amenities: ["Wi-Fi", "Air Conditioning", "Kitchen", "Washing Machine", "TV", "Parking", "Balcony"],
-        rating: 4.5,
-        reviewCount: 32,
-        instantBook: true,
-        host: {
-          id: "host1",
-          name: "Sarah M.",
-          image: "/images/host-sarah.png",
-          superhost: true,
-          verified: true,
-        },
-      }
-      setProperty(mockProperty)
-      setLoading(false)
-    } catch (error) {
-      console.error("Error loading property:", error)
-      toast({
-        title: "Error",
-        description: "Failed to load property details",
-        variant: "destructive",
-      })
-      setLoading(false)
+    if (!apartment) {
+      router.push("/explore")
     }
+  }, [apartment, router])
+
+  if (!apartment) {
+    return null
   }
 
-  const calculateNights = () => {
-    if (dateRange?.from && dateRange?.to) {
-      const diffTime = Math.abs(dateRange.to.getTime() - dateRange.from.getTime())
-      return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    }
-    return 0
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % apartment.images.length)
   }
 
-  const calculateTotal = () => {
-    const nights = calculateNights()
-    const subtotal = nights * (property?.price || 0)
-    const serviceFee = Math.round(subtotal * 0.14)
-    const cleaningFee = 25
-    const taxes = Math.round((subtotal + serviceFee + cleaningFee) * 0.18)
-    return {
-      nights,
-      subtotal,
-      serviceFee,
-      cleaningFee,
-      taxes,
-      total: subtotal + serviceFee + cleaningFee + taxes,
-    }
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + apartment.images.length) % apartment.images.length)
   }
 
-  const handleBooking = () => {
+  const calculateTotalPrice = () => {
+    if (!dateRange?.from || !dateRange?.to) return 0
+    const nights = differenceInDays(dateRange.to, dateRange.from)
+    return nights * apartment.price
+  }
+
+  const handleReserve = async () => {
     if (!user) {
-      router.push("/auth/signin")
+      router.push(`/auth/signin?redirect=/apartments/${apartment.id}`)
       return
     }
 
     if (!dateRange?.from || !dateRange?.to) {
-      toast({
-        title: "Missing dates",
-        description: "Please select check-in and check-out dates",
-        variant: "destructive",
-      })
+      setBookingError("Please select check-in and check-out dates")
       return
     }
 
-    setShowBookingDialog(true)
-  }
-
-  const confirmBooking = async () => {
-    if (!user || !property || !dateRange?.from || !dateRange?.to) return
+    setBookingLoading(true)
+    setBookingError("")
 
     try {
-      const { data, error } = await supabase
-        .from("bookings")
-        .insert({
-          property_id: property.id,
-          guest_id: user.id,
-          check_in: dateRange.from.toISOString().split("T")[0],
-          check_out: dateRange.to.toISOString().split("T")[0],
-          guests,
-          total_price: calculateTotal().total,
-          status: "confirmed",
-          special_requests: bookingDetails.specialRequests,
-          arrival_time: bookingDetails.arrivalTime,
-          purpose: bookingDetails.purpose,
-        })
-        .select()
-        .single()
+      const { data, error } = await supabase.from("bookings").insert({
+        property_id: apartment.id,
+        guest_id: user.id,
+        check_in: format(dateRange.from, "yyyy-MM-dd"),
+        check_out: format(dateRange.to, "yyyy-MM-dd"),
+        guests: guests,
+        total_price: calculateTotalPrice(),
+        status: "pending",
+      })
 
       if (error) throw error
 
-      toast({
-        title: "Booking confirmed!",
-        description: "Your booking has been successfully created.",
-      })
-
-      setShowBookingDialog(false)
-      router.push("/bookings?success=true")
+      setBookingSuccess(true)
+      setTimeout(() => {
+        router.push("/bookings")
+      }, 2000)
     } catch (error) {
       console.error("Booking error:", error)
-      toast({
-        title: "Booking failed",
-        description: "There was an error creating your booking. Please try again.",
-        variant: "destructive",
-      })
+      setBookingError("Failed to create booking. Please try again.")
+    } finally {
+      setBookingLoading(false)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          <div className="text-center">Loading...</div>
-        </main>
-        <Footer />
-        <ChatBox />
-      </div>
-    )
-  }
-
-  if (!property) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          <div className="text-center">Property not found</div>
-        </main>
-        <Footer />
-        <ChatBox />
-      </div>
-    )
-  }
-
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % property.images.length)
-  }
-
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + property.images.length) % property.images.length)
-  }
+  const totalPrice = calculateTotalPrice()
+  const nights = dateRange?.from && dateRange?.to ? differenceInDays(dateRange.to, dateRange.from) : 0
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">{property.title}</h1>
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
-                <span className="font-medium">{property.rating.toFixed(1)}</span>
-                <span className="text-muted-foreground ml-1">({property.reviewCount} reviews)</span>
-              </div>
-              <div className="flex items-center">
-                <MapPin className="w-4 h-4 mr-1" />
-                <span>{property.location}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => setIsFavorite(!isFavorite)}>
-                <Heart className={`w-4 h-4 mr-2 ${isFavorite ? "fill-red-500 text-red-500" : ""}`} />
-                Save
-              </Button>
-              <Button variant="ghost" size="sm">
-                <Share className="w-4 h-4 mr-2" />
-                Share
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="relative rounded-lg overflow-hidden mb-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Image Gallery */}
+        <div className="relative h-[400px] md:h-[500px] rounded-xl overflow-hidden mb-8">
           <Image
-            src={property.images[currentImageIndex] || "/placeholder.svg"}
-            alt={property.title}
-            width={800}
-            height={400}
-            className="w-full h-[400px] object-cover"
+            src={apartment.images[currentImageIndex] || "/placeholder.svg"}
+            alt={apartment.title}
+            fill
+            className="object-cover"
           />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
+          <button
             onClick={prevImage}
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all"
+            aria-label="Previous image"
           >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <button
             onClick={nextImage}
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all"
+            aria-label="Next image"
           >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+            <ChevronRight className="w-6 h-6" />
+          </button>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+            {apartment.images.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentImageIndex(index)}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  index === currentImageIndex ? "bg-white w-8" : "bg-white/50"
+                }`}
+                aria-label={`Go to image ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Details */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="flex items-center gap-6 text-sm">
-              <div className="flex items-center">
-                <Users className="w-4 h-4 mr-2" />
-                {property.guests} guests
-              </div>
-              <div className="flex items-center">
-                <Bed className="w-4 h-4 mr-2" />
-                {property.bedrooms} bedroom{property.bedrooms > 1 ? "s" : ""}
-              </div>
-              <div className="flex items-center">
-                <Bath className="w-4 h-4 mr-2" />
-                {property.bathrooms} bathroom{property.bathrooms > 1 ? "s" : ""}
-              </div>
-            </div>
-
             <div>
-              <h3 className="font-semibold mb-2">About this place</h3>
-              <p className="text-muted-foreground">{property.description}</p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">What this place offers</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {property.amenities.map((amenity: string) => (
-                  <div key={amenity} className="flex items-center">
-                    <Wifi className="w-4 h-4 mr-3" />
-                    <span className="text-sm">{amenity}</span>
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h1 className="text-3xl font-bold mb-2">{apartment.title}</h1>
+                  <div className="flex items-center gap-4 text-gray-600">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      <span>{apartment.location}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="font-semibold">{apartment.rating}</span>
+                      <span>({apartment.reviewCount} reviews)</span>
+                    </div>
                   </div>
-                ))}
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="icon" onClick={() => setIsFavorite(!isFavorite)}>
+                    <Heart className={`w-5 h-5 ${isFavorite ? "fill-pink-500 text-pink-500" : ""}`} />
+                  </Button>
+                  <Button variant="ghost" size="icon">
+                    <Share2 className="w-5 h-5" />
+                  </Button>
+                </div>
+              </div>
+
+              {apartment.instantBook && (
+                <Badge className="bg-pink-600 hover:bg-pink-700">
+                  <Star className="w-3 h-3 mr-1" />
+                  Instant Book
+                </Badge>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Property Info */}
+            <div className="flex gap-6">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-gray-600" />
+                <span>
+                  {apartment.guests} guest{apartment.guests > 1 ? "s" : ""}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Bed className="w-5 h-5 text-gray-600" />
+                <span>
+                  {apartment.bedrooms} bedroom{apartment.bedrooms > 1 ? "s" : ""}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Bath className="w-5 h-5 text-gray-600" />
+                <span>
+                  {apartment.bathrooms} bathroom{apartment.bathrooms > 1 ? "s" : ""}
+                </span>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Description */}
+            <div>
+              <h2 className="text-xl font-semibold mb-3">About this place</h2>
+              <p className="text-gray-700 leading-relaxed">{apartment.description}</p>
+            </div>
+
+            <Separator />
+
+            {/* Amenities */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">What this place offers</h2>
+              <div className="grid grid-cols-2 gap-4">
+                {apartment.amenities.map((amenity) => {
+                  const Icon = amenityIcons[amenity] || Wifi
+                  return (
+                    <div key={amenity} className="flex items-center gap-3">
+                      <Icon className="w-5 h-5 text-gray-600" />
+                      <span>{amenity}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Host Info */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Hosted by {apartment.hostName}</h2>
+              <div className="flex items-center gap-4">
+                <Image
+                  src={apartment.hostImage || "/placeholder.svg"}
+                  alt={apartment.hostName}
+                  width={64}
+                  height={64}
+                  className="rounded-full"
+                />
+                <div>
+                  <p className="font-semibold">{apartment.hostName}</p>
+                  <p className="text-gray-600">Joined in {apartment.hostJoined}</p>
+                </div>
               </div>
             </div>
           </div>
 
+          {/* Right Column - Booking Card */}
           <div className="lg:col-span-1">
             <Card className="sticky top-8">
-              <CardHeader>
-                <div className="flex items-center justify-between">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-baseline justify-between">
                   <div>
-                    <span className="text-2xl font-bold">${property.price}</span>
-                    <span className="text-muted-foreground"> night</span>
+                    <span className="text-2xl font-bold">${apartment.price}</span>
+                    <span className="text-gray-600"> / night</span>
                   </div>
-                  {property.instantBook && <Badge>Instant Book</Badge>}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label className="text-xs font-medium mb-2 block">SELECT DATES</Label>
-                  <Calendar
-                    mode="range"
-                    selected={dateRange}
-                    onSelect={setDateRange}
-                    disabled={(date) => date < new Date()}
-                    className="rounded-md border w-full"
-                    numberOfMonths={1}
-                  />
+                  <div className="flex items-center gap-1">
+                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    <span className="font-semibold">{apartment.rating}</span>
+                  </div>
                 </div>
 
-                <div>
-                  <Label className="text-xs font-medium">GUESTS</Label>
-                  <Select value={guests.toString()} onValueChange={(value) => setGuests(Number.parseInt(value))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: property.guests }, (_, i) => i + 1).map((num) => (
-                        <SelectItem key={num} value={num.toString()}>
-                          {num} guest{num > 1 ? "s" : ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {dateRange?.from && dateRange?.to && (
-                  <div className="space-y-2 pt-4 border-t">
-                    <div className="flex justify-between text-sm">
-                      <span>
-                        ${property.price} x {calculateTotal().nights} nights
-                      </span>
-                      <span>${calculateTotal().subtotal}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Service fee</span>
-                      <span>${calculateTotal().serviceFee}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Cleaning fee</span>
-                      <span>${calculateTotal().cleaningFee}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Taxes</span>
-                      <span>${calculateTotal().taxes}</span>
-                    </div>
-                    <div className="flex justify-between font-semibold pt-2 border-t">
-                      <span>Total</span>
-                      <span>${calculateTotal().total}</span>
-                    </div>
-                  </div>
+                {bookingError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{bookingError}</AlertDescription>
+                  </Alert>
                 )}
 
-                <Button
-                  onClick={handleBooking}
-                  disabled={!dateRange?.from || !dateRange?.to}
-                  className="w-full"
-                  size="lg"
-                >
-                  {property.instantBook ? "Book Now" : "Request to Book"}
-                </Button>
+                {bookingSuccess && (
+                  <Alert className="bg-green-50 text-green-900 border-green-200">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>Booking successful! Redirecting to bookings...</AlertDescription>
+                  </Alert>
+                )}
 
-                <p className="text-xs text-center text-muted-foreground">You won't be charged yet</p>
+                {!user ? (
+                  <div className="space-y-4">
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>You need to sign in before booking this property.</AlertDescription>
+                    </Alert>
+                    <Button
+                      className="w-full"
+                      onClick={() => router.push(`/auth/signin?redirect=/apartments/${apartment.id}`)}
+                    >
+                      Sign in to book
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium flex items-center gap-2">
+                        <CalendarIcon className="w-4 h-4" />
+                        Select dates
+                      </label>
+                      <Calendar
+                        mode="range"
+                        selected={dateRange}
+                        onSelect={setDateRange}
+                        numberOfMonths={1}
+                        disabled={(date) => date < new Date()}
+                        className="rounded-md border"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        Guests
+                      </label>
+                      <select
+                        value={guests}
+                        onChange={(e) => setGuests(Number(e.target.value))}
+                        className="w-full px-3 py-2 border rounded-md"
+                      >
+                        {Array.from({ length: apartment.guests }, (_, i) => i + 1).map((num) => (
+                          <option key={num} value={num}>
+                            {num} guest{num > 1 ? "s" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {dateRange?.from && dateRange?.to && (
+                      <div className="space-y-2 pt-4 border-t">
+                        <div className="flex justify-between text-sm">
+                          <span>
+                            ${apartment.price} x {nights} night{nights > 1 ? "s" : ""}
+                          </span>
+                          <span>${totalPrice}</span>
+                        </div>
+                        <div className="flex justify-between font-semibold">
+                          <span>Total</span>
+                          <span>${totalPrice}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <Button className="w-full" size="lg" onClick={handleReserve} disabled={bookingLoading}>
+                      {bookingLoading ? "Processing..." : "Reserve"}
+                    </Button>
+
+                    <p className="text-xs text-center text-gray-600">{"You won't be charged yet"}</p>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
         </div>
-
-        <Dialog open={showBookingDialog} onOpenChange={setShowBookingDialog}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Confirm your booking</DialogTitle>
-              <DialogDescription>Review your booking details before confirming</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="purpose">Purpose of visit</Label>
-                <Select onValueChange={(value) => setBookingDetails({ ...bookingDetails, purpose: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select purpose" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="business">Business</SelectItem>
-                    <SelectItem value="leisure">Leisure</SelectItem>
-                    <SelectItem value="family">Family visit</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="arrival">Estimated arrival time</Label>
-                <Input
-                  id="arrival"
-                  placeholder="e.g., 3:00 PM"
-                  value={bookingDetails.arrivalTime}
-                  onChange={(e) => setBookingDetails({ ...bookingDetails, arrivalTime: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="requests">Special requests (optional)</Label>
-                <Textarea
-                  id="requests"
-                  placeholder="Any special requests or requirements..."
-                  value={bookingDetails.specialRequests}
-                  onChange={(e) => setBookingDetails({ ...bookingDetails, specialRequests: e.target.value })}
-                />
-              </div>
-              <div className="bg-muted p-4 rounded-lg">
-                <div className="flex justify-between font-semibold">
-                  <span>Total: ${calculateTotal().total}</span>
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowBookingDialog(false)}>
-                Cancel
-              </Button>
-              <Button onClick={confirmBooking}>Confirm Booking</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </main>
-      <Footer />
-      <ChatBox />
+      </div>
     </div>
   )
 }
