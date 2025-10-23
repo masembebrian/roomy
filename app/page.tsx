@@ -40,10 +40,10 @@ export default function Home() {
   }
 
   const stats = [
-    { icon: Shield, label: "Verified Hosts", value: "10,000+", color: "text-pink-600" },
-    { icon: Users, label: "Happy Guests", value: "50,000+", color: "text-purple-600" },
-    { icon: MapPin, label: "Properties", value: "5,000+", color: "text-blue-600" },
-    { icon: Star, label: "Average Rating", value: "4.8", color: "text-yellow-600" },
+    { icon: Shield, label: "Verified Hosts", value: "10,000+", color: "bg-pink-100 text-pink-600" },
+    { icon: Users, label: "Happy Guests", value: "50,000+", color: "bg-purple-100 text-purple-600" },
+    { icon: MapPin, label: "Properties", value: "5,000+", color: "bg-blue-100 text-blue-600" },
+    { icon: Star, label: "Average Rating", value: "4.8", color: "bg-yellow-100 text-yellow-600" },
   ]
 
   const features = [
@@ -73,6 +73,30 @@ export default function Home() {
     },
   ]
 
+  const testimonials = [
+    {
+      name: "Sarah Johnson",
+      role: "Digital Nomad",
+      image: "/images/host-sarah.png",
+      rating: 5,
+      text: "Roomy made finding accommodation in Uganda so easy! The apartments are exactly as described and the hosts are incredibly welcoming.",
+    },
+    {
+      name: "David Chen",
+      role: "Travel Blogger",
+      image: "/images/host-david.png",
+      rating: 5,
+      text: "I've stayed in 5 different properties through Roomy and each experience has been fantastic. The platform is reliable and professional.",
+    },
+    {
+      name: "Emily Williams",
+      role: "Business Traveler",
+      image: "/images/host-emily.png",
+      rating: 5,
+      text: "The booking process is seamless, properties are verified, and customer support is outstanding. Highly recommend for anyone visiting Uganda!",
+    },
+  ]
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <Header />
@@ -81,10 +105,9 @@ export default function Home() {
         {/* Hero Section */}
         <section className="relative py-12 sm:py-16 md:py-20 lg:py-24 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-pink-100/50 via-purple-100/50 to-blue-100/50 dark:from-pink-950/20 dark:via-purple-950/20 dark:to-blue-950/20" />
-          <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
 
-          <div className="container-wide relative z-10">
-            <div className="max-w-5xl mx-auto text-center mb-8 sm:mb-12 animate-fade-in-up">
+          <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="max-w-5xl mx-auto text-center mb-8 sm:mb-12">
               <div className="inline-flex items-center gap-2 px-4 py-2 mb-4 sm:mb-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full shadow-lg border border-pink-200 dark:border-pink-900">
                 <TrendingUp className="w-4 h-4 text-pink-600" />
                 <span className="text-xs sm:text-sm font-medium text-pink-600">Uganda's #1 Accommodation Platform</span>
@@ -105,20 +128,19 @@ export default function Home() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mt-8 sm:mt-12 max-w-6xl mx-auto px-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mt-8 sm:mt-12 max-w-6xl mx-auto">
               {stats.map((stat, index) => (
                 <Card
                   key={index}
-                  className="border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm"
-                  style={{ animationDelay: `${index * 100}ms` }}
+                  className="border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm"
                 >
                   <CardContent className="pt-4 sm:pt-6 text-center">
                     <div
-                      className={`w-10 h-10 sm:w-12 sm:h-12 ${stat.color} bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3`}
+                      className={`w-10 h-10 sm:w-12 sm:h-12 ${stat.color} rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3`}
                     >
-                      <stat.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${stat.color}`} />
+                      <stat.icon className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
-                    <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-1">{stat.value}</div>
+                    <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 text-foreground">{stat.value}</div>
                     <div className="text-xs sm:text-sm text-muted-foreground">{stat.label}</div>
                   </CardContent>
                 </Card>
@@ -129,15 +151,15 @@ export default function Home() {
 
         {/* Features Section */}
         <section className="py-12 sm:py-16 md:py-20 bg-white dark:bg-gray-950">
-          <div className="container-wide">
+          <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8 sm:mb-12 md:mb-16">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Why Choose Roomy?</h2>
-              <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
+              <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
                 Experience the difference with our premium features and exceptional service
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8 px-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
               {features.map((feature, index) => (
                 <Card
                   key={index}
@@ -153,7 +175,7 @@ export default function Home() {
                       <feature.icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                     </div>
                     <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 text-center">{feature.title}</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground text-center leading-relaxed px-2">
+                    <p className="text-xs sm:text-sm text-muted-foreground text-center leading-relaxed">
                       {feature.description}
                     </p>
                   </CardContent>
@@ -165,8 +187,8 @@ export default function Home() {
 
         {/* Featured Properties Section */}
         <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-background to-muted/30">
-          <div className="container-wide">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 md:mb-12 px-4 gap-4">
+          <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 md:mb-12 gap-4">
               <div>
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Featured Properties</h2>
                 <p className="text-sm sm:text-base text-muted-foreground">Hand-picked accommodations just for you</p>
@@ -183,18 +205,15 @@ export default function Home() {
               </Button>
             </div>
 
-            <div className="px-4">
-              <ApartmentList />
-            </div>
+            <ApartmentList />
           </div>
         </section>
 
         {/* CTA Section */}
         <section className="py-12 sm:py-16 md:py-20">
-          <div className="container-wide px-4">
+          <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <Card className="relative overflow-hidden border-none shadow-2xl">
               <div className="absolute inset-0 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 opacity-90" />
-              <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10" />
 
               <CardContent className="relative z-10 p-6 sm:p-8 md:p-12 lg:p-16 text-center text-white">
                 <div className="max-w-3xl mx-auto">
@@ -233,38 +252,16 @@ export default function Home() {
 
         {/* Testimonials Section */}
         <section className="py-12 sm:py-16 md:py-20 bg-muted/30">
-          <div className="container-wide">
-            <div className="text-center mb-8 sm:mb-12 px-4">
+          <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-8 sm:mb-12">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">What Our Guests Say</h2>
               <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
                 Real experiences from real travelers
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 px-4">
-              {[
-                {
-                  name: "Sarah Johnson",
-                  role: "Digital Nomad",
-                  image: "/images/host-sarah.png",
-                  rating: 5,
-                  text: "Roomy made finding accommodation in Uganda so easy! The apartments are exactly as described and the hosts are incredibly welcoming.",
-                },
-                {
-                  name: "David Chen",
-                  role: "Travel Blogger",
-                  image: "/images/host-david.png",
-                  rating: 5,
-                  text: "I've stayed in 5 different properties through Roomy and each experience has been fantastic. The platform is reliable and professional.",
-                },
-                {
-                  name: "Emily Williams",
-                  role: "Business Traveler",
-                  image: "/images/host-emily.png",
-                  rating: 5,
-                  text: "The booking process is seamless, properties are verified, and customer support is outstanding. Highly recommend for anyone visiting Uganda!",
-                },
-              ].map((testimonial, index) => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+              {testimonials.map((testimonial, index) => (
                 <Card
                   key={index}
                   className="border-none shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
