@@ -117,7 +117,7 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17)
       tw-animate-css:
-        specifier: latest
+        specifier: 1.4.0
         version: 1.4.0
     devDependencies:
       '@types/node':
