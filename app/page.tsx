@@ -1,424 +1,251 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Header } from "@/components/header"
+import Footer from "@/components/footer"
+import ChatBox from "@/components/chat-box"
 import { SearchBar } from "@/components/search-bar"
 import { ApartmentList } from "@/components/apartment-list"
 import { Testimonials } from "@/components/testimonials"
-import { Home, MapPin, Shield, Clock, Sparkles, ArrowRight, Users, Award, ChevronRight } from "lucide-react"
-import { motion } from "framer-motion"
+import MouseImageTrail from "@/components/mouse-image-trail"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { ChevronLeft, ChevronRight, MapPin, Users, Home, Shield, Sparkles } from "lucide-react"
 
-const features = [
+const heroImages = [
   {
-    icon: Shield,
-    title: "Verified Listings",
-    description: "All properties are verified for your safety and peace of mind",
+    src: "/images/kampala-apartment.png",
+    title: "Modern Living in Kampala",
+    description: "Discover luxury apartments in Uganda's capital city",
   },
   {
-    icon: MapPin,
-    title: "Prime Locations",
-    description: "Discover apartments in the best neighborhoods across Uganda",
+    src: "/images/entebbe-studio.png",
+    title: "Lakeside Retreats",
+    description: "Relax by the shores of Lake Victoria",
   },
   {
-    icon: Clock,
-    title: "Instant Booking",
-    description: "Book your perfect place in minutes with our streamlined process",
-  },
-  {
-    icon: Sparkles,
-    title: "Premium Experience",
-    description: "Enjoy top-tier amenities and exceptional hospitality",
+    src: "/images/jinja-family-home.png",
+    title: "Adventure Awaits",
+    description: "Experience the source of the Nile",
   },
 ]
-
-const stats = [
-  { icon: Home, value: "10,000+", label: "Properties" },
-  { icon: Users, value: "50,000+", label: "Happy Guests" },
-  { icon: MapPin, value: "100+", label: "Cities" },
-  { icon: Award, value: "4.9", label: "Average Rating" },
-]
-
-const popularDestinations = [
-  {
-    name: "Kampala",
-    properties: "2,500+ properties",
-    image: "/images/kampala-apartment.png",
-    tag: "Most Popular",
-  },
-  {
-    name: "Entebbe",
-    properties: "800+ properties",
-    image: "/images/entebbe-studio.png",
-    tag: "Beach & Airport",
-  },
-  {
-    name: "Jinja",
-    properties: "500+ properties",
-    image: "/images/jinja-family-home.png",
-    tag: "Adventure Hub",
-  },
-  {
-    name: "Mbarara",
-    properties: "300+ properties",
-    image: "/images/mukono-villa.png",
-    tag: "Western Pearl",
-  },
-]
-
-const container = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-}
-
-const item = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0 },
-}
 
 export default function HomePage() {
-  const [mounted, setMounted] = useState(false)
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [isTrailEnabled] = useState(true)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % heroImages.length)
+  }
 
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    )
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + heroImages.length) % heroImages.length)
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-blue-900/20">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+    <div className="min-h-screen bg-background">
+      <Header />
 
-        <div className="container relative z-10 px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-5xl mx-auto text-center space-y-8"
-          >
-            {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg border border-purple-100 dark:border-purple-900"
+      {isTrailEnabled && <MouseImageTrail />}
+
+      {/* Hero Section with Carousel */}
+      <section className="relative h-[600px] overflow-hidden">
+        <div className="absolute inset-0">
+          {heroImages.map((image, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 transition-opacity duration-1000 ${
+                index === currentSlide ? "opacity-100" : "opacity-0"
+              }`}
             >
-              <Sparkles className="h-4 w-4 text-purple-600" />
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                Uganda's #1 Accommodation Platform
-              </span>
-            </motion.div>
-
-            {/* Main Heading */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
-              <span className="block text-gray-900 dark:text-white mb-2">Find Your Perfect</span>
-              <span className="block text-gradient">Home Away From Home</span>
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Discover unique apartments, hotels, and experiences across Uganda. Book with confidence and create
-              unforgettable memories.
-            </p>
-
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4"
-            >
-              <Button
-                size="lg"
-                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-                asChild
-              >
-                <Link href="/explore">
-                  Start Exploring
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 rounded-xl border-2 hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all duration-300 bg-transparent"
-                asChild
-              >
-                <Link href="/list-property">
-                  List Your Property
-                  <Home className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-            </motion.div>
-
-            {/* Stats Bar */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8 pt-8 sm:pt-12"
-            >
-              {stats.map((stat, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col items-center p-4 rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg"
-                >
-                  <stat.icon className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 mb-2" />
-                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
-                  <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">{stat.label}</div>
-                </div>
-              ))}
-            </motion.div>
-          </motion.div>
+              <Image src={image.src || "/placeholder.svg"} alt={image.title} fill className="object-cover" priority />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/30" />
+            </div>
+          ))}
         </div>
 
-        {/* Decorative Elements */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute top-40 right-10 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        {/* Content Overlay */}
+        <div className="relative h-full flex items-center">
+          <div className="container mx-auto px-4">
+            <div className="max-w-2xl">
+              <Badge className="mb-4" variant="secondary">
+                <Sparkles className="w-3 h-3 mr-1" />
+                Welcome to Roomy
+              </Badge>
+              <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 animate-fade-in-up">
+                {heroImages[currentSlide].title}
+              </h1>
+              <p className="text-xl text-gray-200 mb-8 animate-fade-in-up animation-delay-200">
+                {heroImages[currentSlide].description}
+              </p>
+
+              {/* Search Bar */}
+              <div className="animate-fade-in-up animation-delay-400">
+                <SearchBar />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Carousel Controls */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-3 rounded-full transition-all z-10"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-3 rounded-full transition-all z-10"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+
+        {/* Slide Indicators */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          {heroImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                index === currentSlide ? "bg-white w-8" : "bg-white/50"
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
       </section>
 
-      {/* Search Section */}
-      <section className="py-12 sm:py-16 -mt-20 relative z-20">
-        <div className="container px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-5xl mx-auto"
-          >
-            <Card className="shadow-2xl border-0 overflow-hidden">
-              <CardContent className="p-6 sm:p-8 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
-                <SearchBar />
+      {/* Stats Banner */}
+      <section className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+              <div className="text-4xl font-bold mb-2">1000+</div>
+              <div className="text-sm opacity-90">Properties</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold mb-2">50+</div>
+              <div className="text-sm opacity-90">Cities</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold mb-2">10k+</div>
+              <div className="text-sm opacity-90">Happy Guests</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold mb-2">4.8★</div>
+              <div className="text-sm opacity-90">Average Rating</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Properties */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h2 className="text-3xl font-bold mb-2">Featured Properties</h2>
+              <p className="text-muted-foreground">Handpicked properties just for you</p>
+            </div>
+            <Link href="/explore">
+              <Button variant="outline">View All</Button>
+            </Link>
+          </div>
+          <ApartmentList />
+        </div>
+      </section>
+
+      {/* Why Choose Roomy */}
+      <section className="py-16 bg-muted/50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Why Choose Roomy?</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              We make finding and booking your perfect stay simple, secure, and enjoyable
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center mb-4">
+                  <Home className="w-6 h-6 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Verified Properties</h3>
+                <p className="text-muted-foreground">
+                  All our properties are personally verified to ensure quality and accuracy
+                </p>
               </CardContent>
             </Card>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* Popular Destinations */}
-      <section className="py-16 sm:py-24 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
-        <div className="container px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12 sm:mb-16"
-          >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              Popular Destinations
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Explore the most loved cities and discover amazing places to stay
-            </p>
-          </motion.div>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="w-12 h-12 rounded-full bg-pink-100 dark:bg-pink-900 flex items-center justify-center mb-4">
+                  <Shield className="w-6 h-6 text-pink-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Secure Booking</h3>
+                <p className="text-muted-foreground">
+                  Your payments and personal information are always protected and secure
+                </p>
+              </CardContent>
+            </Card>
 
-          <motion.div
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
-          >
-            {popularDestinations.map((destination, index) => (
-              <motion.div key={index} variants={item}>
-                <Link href={`/explore?location=${destination.name}`}>
-                  <Card className="group overflow-hidden hover-lift border-0 shadow-lg hover:shadow-2xl transition-all duration-300">
-                    <div className="relative h-64 sm:h-72 overflow-hidden">
-                      <Image
-                        src={destination.image || "/placeholder.svg"}
-                        alt={destination.name}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-
-                      {/* Tag */}
-                      <div className="absolute top-4 right-4">
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/90 text-gray-900 backdrop-blur-sm">
-                          {destination.tag}
-                        </span>
-                      </div>
-
-                      {/* Content */}
-                      <div className="absolute bottom-0 left-0 right-0 p-6">
-                        <h3 className="text-2xl font-bold text-white mb-2">{destination.name}</h3>
-                        <p className="text-white/90 text-sm flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          {destination.properties}
-                        </p>
-                      </div>
-
-                      {/* Hover Arrow */}
-                      <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="p-2 rounded-full bg-white text-gray-900">
-                          <ChevronRight className="h-5 w-5" />
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-16 sm:py-24">
-        <div className="container px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12 sm:mb-16"
-          >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              Why Choose Roomy?
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              We make finding and booking your perfect accommodation simple, safe, and enjoyable
-            </p>
-          </motion.div>
-
-          <motion.div
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
-          >
-            {features.map((feature, index) => (
-              <motion.div key={index} variants={item}>
-                <Card className="h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                  <CardContent className="p-6 sm:p-8 text-center">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 mb-6">
-                      <feature.icon className="h-8 w-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{feature.title}</h3>
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Featured Listings */}
-      <section className="py-16 sm:py-24 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
-        <div className="container px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12 sm:mb-16"
-          >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              Featured Properties
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Hand-picked properties that offer exceptional experiences
-            </p>
-          </motion.div>
-
-          <ApartmentList limit={8} featured />
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mt-12"
-          >
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-base px-8 py-6 rounded-xl border-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 bg-transparent"
-              asChild
-            >
-              <Link href="/explore">
-                View All Properties
-                <ChevronRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </motion.div>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center mb-4">
+                  <Users className="w-6 h-6 text-indigo-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">24/7 Support</h3>
+                <p className="text-muted-foreground">
+                  Our team is always ready to help you with any questions or concerns
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section className="py-16 sm:py-24">
-        <div className="container px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12 sm:mb-16"
-          >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              What Our Guests Say
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Don't just take our word for it - hear from our happy guests
-            </p>
-          </motion.div>
-
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">What Our Guests Say</h2>
+            <p className="text-muted-foreground">Real experiences from real travelers</p>
+          </div>
           <Testimonials />
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 sm:py-24 bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600">
-        <div className="container px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="max-w-4xl mx-auto text-center text-white"
-          >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">Ready to Start Your Journey?</h2>
-            <p className="text-xl sm:text-2xl mb-8 text-white/90">
-              Join thousands of happy guests and find your perfect stay today
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                variant="secondary"
-                className="w-full sm:w-auto text-base sm:text-lg px-8 py-6 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
-                asChild
-              >
-                <Link href="/auth/signup">
-                  Sign Up Now
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
+      <section className="py-20 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-4xl font-bold mb-4">Ready to Explore?</h2>
+          <p className="text-xl mb-8 opacity-90">Discover amazing properties across Uganda</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/explore">
+              <Button size="lg" variant="secondary">
+                <MapPin className="w-4 h-4 mr-2" />
+                Browse Properties
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-full sm:w-auto text-base sm:text-lg px-8 py-6 rounded-xl border-2 border-white text-white hover:bg-white hover:text-purple-600 transition-all duration-300 bg-transparent"
-                asChild
-              >
-                <Link href="/explore">Browse Properties</Link>
+            </Link>
+            <Link href="/gallery">
+              <Button size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 border-white text-white">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Interactive Gallery
               </Button>
-            </div>
-          </motion.div>
+            </Link>
+          </div>
         </div>
       </section>
+
+      <Footer />
+      <ChatBox />
     </div>
   )
 }

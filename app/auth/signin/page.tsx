@@ -3,220 +3,228 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useAuth } from "@/lib/auth"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import Header from "@/components/header"
+import Footer from "@/components/footer"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useRouter, useSearchParams } from "next/navigation"
-import Link from "next/link"
-import { Mail, Phone, Chrome, AlertCircle, ArrowLeft } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useAuth } from "@/lib/auth"
+import { useToast } from "@/hooks/use-toast"
+import { Mail, Phone, Chrome, ArrowLeft } from "lucide-react"
 
-export default function SignInPage() {
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const { signIn, signInWithGoogle } = useAuth()
+export default function SignIn() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const redirectTo = searchParams.get("redirect") || "/"
+  const { signIn, signInWithGoogle } = useAuth()
+  const { toast } = useToast()
+  const [isLoading, setIsLoading] = useState(false)
+  const [emailData, setEmailData] = useState({ email: "", password: "" })
+  const [phoneData, setPhoneData] = useState({ phone: "", password: "" })
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError("")
+    setIsLoading(true)
 
-    const result = await signIn({ email, password, method: "email" })
+    try {
+      const success = await signIn({
+        email: emailData.email,
+        password: emailData.password,
+        method: "email",
+      })
 
-    if (result.success) {
-      router.push(redirectTo)
-    } else {
-      setError(result.error || "Invalid credentials. Please check your email and password.")
+      if (success) {
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        })
+        router.push("/")
+      } else {
+        toast({
+          title: "Sign in failed",
+          description: "Invalid email or password. Please try again.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred during sign in. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
-
-    setLoading(false)
   }
 
   const handlePhoneSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError("")
+    setIsLoading(true)
 
-    const result = await signIn({ phone, password, method: "phone" })
+    try {
+      const success = await signIn({
+        phone: phoneData.phone,
+        password: phoneData.password,
+        method: "phone",
+      })
 
-    if (result.success) {
-      router.push(redirectTo)
-    } else {
-      setError(result.error || "Invalid credentials. Please check your phone number and password.")
+      if (success) {
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        })
+        router.push("/")
+      } else {
+        toast({
+          title: "Sign in failed",
+          description: "Invalid phone number or password. Please try again.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred during sign in. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
-
-    setLoading(false)
   }
 
   const handleGoogleSignIn = async () => {
-    setLoading(true)
-    setError("")
-
-    const result = await signInWithGoogle()
-
-    if (!result.success) {
-      setError(result.error || "Unable to sign in with Google. Please try email or phone sign-in, or contact support.")
-      setLoading(false)
+    setIsLoading(true)
+    try {
+      await signInWithGoogle()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign in with Google. Please try again.",
+        variant: "destructive",
+      })
+      setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-purple-50 p-4">
-      <div className="w-full max-w-md">
-        <Link
-          href="/auth/welcome"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Link>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-md mx-auto">
+          <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to home
+          </Link>
 
-        <Card className="border-none shadow-xl">
-          <CardHeader className="space-y-1 text-center pb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-pink-600 to-purple-600 rounded-xl mb-4 mx-auto shadow-lg">
-              <span className="text-3xl font-bold text-white">R</span>
-            </div>
-            <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-            <CardDescription>Sign in to continue to Roomy</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-11 bg-white hover:bg-gray-50"
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-            >
-              <Chrome className="mr-2 h-5 w-5" />
-              Continue with Google
-            </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-muted-foreground">Or sign in with</span>
-              </div>
-            </div>
-
-            <Tabs defaultValue="email" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 h-11">
-                <TabsTrigger value="email" className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  <span>Email</span>
-                </TabsTrigger>
-                <TabsTrigger value="phone" className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  <span>Phone</span>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="email" className="space-y-4 mt-4">
-                <form onSubmit={handleEmailSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      disabled={loading}
-                      className="h-11"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      disabled={loading}
-                      className="h-11"
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full h-11 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
-                    disabled={loading}
-                  >
-                    {loading ? "Signing in..." : "Sign In"}
-                  </Button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="phone" className="space-y-4 mt-4">
-                <form onSubmit={handlePhoneSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+256 700 000 000"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      required
-                      disabled={loading}
-                      className="h-11"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone-password">Password</Label>
-                    <Input
-                      id="phone-password"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      disabled={loading}
-                      className="h-11"
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full h-11 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
-                    disabled={loading}
-                  >
-                    {loading ? "Signing in..." : "Sign In"}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-
-            <div className="text-center text-sm pt-2">
-              <span className="text-muted-foreground">Don't have an account? </span>
-              <Link
-                href={`/auth/signup${redirectTo !== "/" ? `?redirect=${redirectTo}` : ""}`}
-                className="text-pink-600 hover:text-pink-700 font-medium hover:underline"
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">Welcome back</CardTitle>
+              <CardDescription>Sign in to your Roomy account</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button
+                onClick={handleGoogleSignIn}
+                variant="outline"
+                className="w-full bg-transparent"
+                disabled={isLoading}
               >
-                Sign up
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                <Chrome className="w-4 h-4 mr-2" />
+                Continue with Google
+              </Button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                </div>
+              </div>
+
+              <Tabs defaultValue="email" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="email" className="flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    <span className="hidden sm:inline">Email</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="phone" className="flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    <span className="hidden sm:inline">Phone</span>
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="email">
+                  <form onSubmit={handleEmailSignIn} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="john@example.com"
+                        value={emailData.email}
+                        onChange={(e) => setEmailData({ ...emailData, email: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Password</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        value={emailData.password}
+                        onChange={(e) => setEmailData({ ...emailData, password: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Signing in..." : "Sign in"}
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="phone">
+                  <form onSubmit={handlePhoneSignIn} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="+256 700 123 456"
+                        value={phoneData.phone}
+                        onChange={(e) => setPhoneData({ ...phoneData, phone: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone-password">Password</Label>
+                      <Input
+                        id="phone-password"
+                        type="password"
+                        value={phoneData.password}
+                        onChange={(e) => setPhoneData({ ...phoneData, password: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Signing in..." : "Sign in"}
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+
+              <div className="text-center text-sm">
+                <span className="text-muted-foreground">Don't have an account? </span>
+                <Link href="/auth/signup" className="text-primary hover:underline">
+                  Sign up
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+      <Footer />
     </div>
   )
 }

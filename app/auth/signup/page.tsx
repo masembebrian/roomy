@@ -3,135 +3,181 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
 import { useAuth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useRouter, useSearchParams } from "next/navigation"
-import Link from "next/link"
-import { Mail, Phone, Chrome, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Eye, EyeOff, Mail, Phone, Chrome, AlertCircle, Loader2, CheckCircle } from "lucide-react"
 
 export default function SignUpPage() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState(false)
-  const { signUp, signInWithGoogle } = useAuth()
+  const { signUp, signInWithGoogle, verifyPhone } = useAuth()
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const redirectTo = searchParams.get("redirect") || "/"
+  const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+  const [phoneStep, setPhoneStep] = useState<"details" | "verify">("details")
+  const [verificationCode, setVerificationCode] = useState("")
+  const [agreeToTerms, setAgreeToTerms] = useState(false)
+
+  // Email sign-up form
+  const [emailForm, setEmailForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  })
+
+  // Phone sign-up form
+  const [phoneForm, setPhoneForm] = useState({
+    name: "",
+    phone: "",
+  })
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLoading(true)
     setError("")
-    setSuccess(false)
+    setSuccess("")
 
-    if (password !== confirmPassword) {
+    // Validation
+    if (emailForm.password !== emailForm.confirmPassword) {
       setError("Passwords do not match")
+      setLoading(false)
       return
     }
 
-    if (password.length < 8) {
+    if (emailForm.password.length < 8) {
       setError("Password must be at least 8 characters long")
+      setLoading(false)
       return
     }
 
-    if (!name.trim()) {
-      setError("Please enter your full name")
+    if (!agreeToTerms) {
+      setError("Please agree to the Terms of Service and Privacy Policy")
+      setLoading(false)
       return
     }
 
-    setLoading(true)
+    try {
+      const success = await signUp({
+        name: emailForm.name,
+        email: emailForm.email,
+        password: emailForm.password,
+        method: "email",
+      })
 
-    const result = await signUp({ name, email, password, method: "email" })
-
-    if (result.success) {
-      setSuccess(true)
-      setTimeout(() => {
-        router.push(redirectTo)
-      }, 1500)
-    } else {
-      setError(result.error || "Unable to create account. Please try again.")
-    }
-
-    setLoading(false)
-  }
-
-  const handlePhoneSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setSuccess(false)
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match")
-      return
-    }
-
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long")
-      return
-    }
-
-    if (!name.trim()) {
-      setError("Please enter your full name")
-      return
-    }
-
-    setLoading(true)
-
-    const result = await signUp({ name, phone, password, method: "phone" })
-
-    if (result.success) {
-      setSuccess(true)
-      setTimeout(() => {
-        router.push(redirectTo)
-      }, 1500)
-    } else {
-      setError(result.error || "Unable to create account. Please try again.")
-    }
-
-    setLoading(false)
-  }
-
-  const handleGoogleSignUp = async () => {
-    setLoading(true)
-    setError("")
-
-    const result = await signInWithGoogle()
-
-    if (!result.success) {
-      setError(result.error || "Unable to sign up with Google. Please try email or phone sign-up, or contact support.")
+      if (success) {
+        setSuccess("Account created successfully! Redirecting...")
+        setTimeout(() => router.push("/"), 2000)
+      } else {
+        setError("An account with this email already exists")
+      }
+    } catch (err) {
+      setError("An error occurred during sign up. Please try again.")
+    } finally {
       setLoading(false)
     }
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-purple-50 p-4">
-      <div className="w-full max-w-md">
-        <Link
-          href="/auth/welcome"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Link>
+  const handleGoogleSignUp = async () => {
+    setGoogleLoading(true)
+    setError("")
+    setSuccess("")
 
-        <Card className="border-none shadow-xl">
-          <CardHeader className="space-y-1 text-center pb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-pink-600 to-purple-600 rounded-xl mb-4 mx-auto shadow-lg">
-              <span className="text-3xl font-bold text-white">R</span>
-            </div>
-            <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-            <CardDescription>Join Roomy and start your journey</CardDescription>
+    if (!agreeToTerms) {
+      setError("Please agree to the Terms of Service and Privacy Policy")
+      setGoogleLoading(false)
+      return
+    }
+
+    try {
+      const success = await signInWithGoogle()
+      if (success) {
+        setSuccess("Account created successfully! Redirecting...")
+        setTimeout(() => router.push("/"), 2000)
+      } else {
+        setError("Google sign up failed. Please try again.")
+      }
+    } catch (err) {
+      setError("An error occurred during Google sign up. Please try again.")
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
+
+  const handlePhoneSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+    setSuccess("")
+
+    if (!agreeToTerms) {
+      setError("Please agree to the Terms of Service and Privacy Policy")
+      setLoading(false)
+      return
+    }
+
+    if (phoneStep === "details") {
+      // Simulate sending SMS
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      setPhoneStep("verify")
+      setLoading(false)
+    } else {
+      // Verify code and create account
+      try {
+        const codeValid = await verifyPhone(phoneForm.phone, verificationCode)
+        if (codeValid) {
+          const success = await signUp({
+            name: phoneForm.name,
+            phone: phoneForm.phone,
+            method: "phone",
+          })
+
+          if (success) {
+            setSuccess("Account created successfully! Redirecting...")
+            setTimeout(() => router.push("/"), 2000)
+          } else {
+            setError("An account with this phone number already exists")
+          }
+        } else {
+          setError("Invalid verification code. Please try again.")
+        }
+      } catch (err) {
+        setError("Verification failed. Please try again.")
+      } finally {
+        setLoading(false)
+      }
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 p-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <Image src="/images/roomy-logo.png" alt="Roomy" width={60} height={60} className="rounded-lg" />
+          </div>
+          <h1 className="text-3xl font-bold">Join Roomy</h1>
+          <p className="text-muted-foreground">Create your account to get started</p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Sign Up</CardTitle>
+            <CardDescription>Choose your preferred registration method</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -140,20 +186,20 @@ export default function SignUpPage() {
             )}
 
             {success && (
-              <Alert className="bg-green-50 text-green-900 border-green-200">
+              <Alert className="border-green-200 bg-green-50">
                 <CheckCircle className="h-4 w-4 text-green-600" />
-                <AlertDescription>Account created successfully! Redirecting...</AlertDescription>
+                <AlertDescription className="text-green-800">{success}</AlertDescription>
               </Alert>
             )}
 
+            {/* Google Sign Up */}
             <Button
-              type="button"
               variant="outline"
-              className="w-full h-11 bg-white hover:bg-gray-50"
+              className="w-full bg-transparent"
               onClick={handleGoogleSignUp}
-              disabled={loading}
+              disabled={googleLoading || loading}
             >
-              <Chrome className="mr-2 h-5 w-5" />
+              {googleLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Chrome className="w-4 h-4 mr-2" />}
               Continue with Google
             </Button>
 
@@ -162,168 +208,210 @@ export default function SignUpPage() {
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-muted-foreground">Or sign up with</span>
+                <span className="bg-background px-2 text-muted-foreground">Or sign up with</span>
               </div>
             </div>
 
+            {/* Email/Phone Tabs */}
             <Tabs defaultValue="email" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 h-11">
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="email" className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  <span>Email</span>
+                  <Mail className="w-4 h-4" />
+                  Email
                 </TabsTrigger>
                 <TabsTrigger value="phone" className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  <span>Phone</span>
+                  <Phone className="w-4 h-4" />
+                  Phone
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="email" className="space-y-4 mt-4">
+              <TabsContent value="email" className="space-y-4">
                 <form onSubmit={handleEmailSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
                     <Input
                       id="name"
                       type="text"
-                      placeholder="Enter your full name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      placeholder="John Doe"
+                      value={emailForm.name}
+                      onChange={(e) => setEmailForm({ ...emailForm, name: e.target.value })}
                       required
-                      disabled={loading}
-                      className="h-11"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
+                    <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="john@example.com"
+                      value={emailForm.email}
+                      onChange={(e) => setEmailForm({ ...emailForm, email: e.target.value })}
                       required
-                      disabled={loading}
-                      className="h-11"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Create a password (min 8 characters)"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      disabled={loading}
-                      minLength={8}
-                      className="h-11"
-                    />
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Create a password"
+                        value={emailForm.password}
+                        onChange={(e) => setEmailForm({ ...emailForm, password: e.target.value })}
+                        required
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Must be at least 8 characters</p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      placeholder="Confirm your password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                      disabled={loading}
-                      minLength={8}
-                      className="h-11"
-                    />
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Confirm your password"
+                        value={emailForm.confirmPassword}
+                        onChange={(e) => setEmailForm({ ...emailForm, confirmPassword: e.target.value })}
+                        required
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
                   </div>
-                  <Button
-                    type="submit"
-                    className="w-full h-11 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
-                    disabled={loading}
-                  >
-                    {loading ? "Creating account..." : "Create Account"}
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                    Create Account
                   </Button>
                 </form>
               </TabsContent>
 
-              <TabsContent value="phone" className="space-y-4 mt-4">
+              <TabsContent value="phone" className="space-y-4">
                 <form onSubmit={handlePhoneSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="phone-name">Full Name</Label>
-                    <Input
-                      id="phone-name"
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                      disabled={loading}
-                      className="h-11"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+256 700 000 000"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      required
-                      disabled={loading}
-                      className="h-11"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone-password">Password</Label>
-                    <Input
-                      id="phone-password"
-                      type="password"
-                      placeholder="Create a password (min 8 characters)"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      disabled={loading}
-                      minLength={8}
-                      className="h-11"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone-confirm-password">Confirm Password</Label>
-                    <Input
-                      id="phone-confirm-password"
-                      type="password"
-                      placeholder="Confirm your password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                      disabled={loading}
-                      minLength={8}
-                      className="h-11"
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full h-11 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
-                    disabled={loading}
-                  >
-                    {loading ? "Creating account..." : "Create Account"}
+                  {phoneStep === "details" ? (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="phoneName">Full Name</Label>
+                        <Input
+                          id="phoneName"
+                          type="text"
+                          placeholder="John Doe"
+                          value={phoneForm.name}
+                          onChange={(e) => setPhoneForm({ ...phoneForm, name: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phoneNumber">Phone Number</Label>
+                        <Input
+                          id="phoneNumber"
+                          type="tel"
+                          placeholder="+256 700 123 456"
+                          value={phoneForm.phone}
+                          onChange={(e) => setPhoneForm({ ...phoneForm, phone: e.target.value })}
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground">We'll send you a verification code via SMS</p>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label htmlFor="phoneCode">Verification Code</Label>
+                      <Input
+                        id="phoneCode"
+                        type="text"
+                        placeholder="Enter 6-digit code"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                        maxLength={6}
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Code sent to {phoneForm.phone}. Use "123456" for demo.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setPhoneStep("details")}
+                        className="text-xs"
+                      >
+                        Change details
+                      </Button>
+                    </div>
+                  )}
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                    {phoneStep === "details" ? "Send Code" : "Create Account"}
                   </Button>
                 </form>
               </TabsContent>
             </Tabs>
 
-            <div className="text-center text-sm pt-2">
-              <span className="text-muted-foreground">Already have an account? </span>
-              <Link
-                href={`/auth/signin${redirectTo !== "/" ? `?redirect=${redirectTo}` : ""}`}
-                className="text-pink-600 hover:text-pink-700 font-medium hover:underline"
-              >
-                Sign in
-              </Link>
+            {/* Terms Agreement */}
+            <div className="flex items-start space-x-2">
+              <Checkbox id="terms" checked={agreeToTerms} onCheckedChange={setAgreeToTerms} />
+              <div className="grid gap-1.5 leading-none">
+                <Label
+                  htmlFor="terms"
+                  className="text-sm font-normal leading-snug peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  I agree to the{" "}
+                  <Link href="/terms" className="text-primary hover:underline">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" className="text-primary hover:underline">
+                    Privacy Policy
+                  </Link>
+                </Label>
+              </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <p className="text-xs text-muted-foreground text-center pt-2">
-              By creating an account, you agree to our Terms of Service and Privacy Policy
-            </p>
+        <div className="text-center mt-6">
+          <p className="text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link href="/auth/signin" className="text-primary hover:underline font-medium">
+              Sign in
+            </Link>
+          </p>
+        </div>
+
+        {/* Benefits */}
+        <Card className="mt-6 bg-muted/50">
+          <CardContent className="p-4">
+            <h3 className="font-semibold text-sm mb-2">Join Roomy and enjoy:</h3>
+            <div className="text-xs space-y-1 text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-3 h-3 text-green-600" />
+                <span>Book amazing properties and experiences</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-3 h-3 text-green-600" />
+                <span>Get personalized recommendations</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-3 h-3 text-green-600" />
+                <span>Follow your favorite hosts</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

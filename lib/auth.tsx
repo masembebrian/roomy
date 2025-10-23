@@ -1,10 +1,8 @@
 "use client"
 
-import type React from "react"
-import { createContext, useContext, useEffect, useState } from "react"
-import type { User as SupabaseUser } from "@supabase/supabase-js"
+import { useState, useEffect, createContext, useContext, type ReactNode } from "react"
 import { supabase } from "./supabase"
-import { useRouter } from "next/navigation"
+import type { User as SupabaseUser } from "@supabase/supabase-js"
 
 interface User {
   id: string
@@ -27,18 +25,15 @@ interface User {
 interface AuthContextType {
   user: User | null
   loading: boolean
-  signIn: (credentials: { email?: string; phone?: string; password?: string; method: string }) => Promise<{
-    success: boolean
-    error?: string
-  }>
+  signIn: (credentials: { email?: string; phone?: string; password?: string; method: string }) => Promise<boolean>
   signUp: (userData: {
     name: string
     email?: string
     phone?: string
     password?: string
     method: "email" | "google" | "phone"
-  }) => Promise<{ success: boolean; error?: string }>
-  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>
+  }) => Promise<boolean>
+  signInWithGoogle: () => Promise<boolean>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<User>) => Promise<boolean>
   requestVerification: () => Promise<boolean>
@@ -47,35 +42,24 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
 
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
-
-        if (session?.user) {
-          await loadUserProfile(session.user)
-        }
-      } catch (error) {
-        console.error("Error initializing auth:", error)
-      } finally {
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        loadUserProfile(session.user)
+      } else {
         setLoading(false)
       }
-    }
+    })
 
-    initAuth()
-
+    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session?.user?.email)
-
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         await loadUserProfile(session.user)
       } else {
@@ -91,51 +75,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await supabase.from("profiles").select("*").eq("id", authUser.id).single()
 
-      if (error && error.code === "PGRST116") {
-        // Profile doesn't exist, create it
-        const provider = authUser.app_metadata?.provider || "email"
-        const newProfile = {
-          id: authUser.id,
-          name:
-            authUser.user_metadata?.full_name ||
-            authUser.user_metadata?.name ||
-            authUser.email?.split("@")[0] ||
-            "User",
-          email: authUser.email || null,
-          phone: authUser.phone || null,
-          image: authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || null,
-          sign_up_method: provider === "google" ? "google" : authUser.phone ? "phone" : "email",
-          verified: authUser.email_confirmed_at ? true : false,
-          verification_status: "none",
-          join_date: new Date().toISOString(),
+      if (error) {
+        // If profile doesn't exist, create it from auth user
+        if (error.code === "PGRST116") {
+          const newProfile = {
+            id: authUser.id,
+            name: authUser.user_metadata?.name || authUser.email?.split("@")[0] || "User",
+            email: authUser.email || null,
+            phone: authUser.phone || null,
+            image: authUser.user_metadata?.avatar_url || null,
+            sign_up_method: authUser.app_metadata?.provider === "google" ? "google" : "email",
+            verified: false,
+            verification_status: "none",
+            join_date: new Date().toISOString(),
+          }
+
+          const { data: createdProfile, error: createError } = await supabase
+            .from("profiles")
+            .insert(newProfile)
+            .select()
+            .single()
+
+          if (createError) throw createError
+
+          setUser({
+            id: createdProfile.id,
+            name: createdProfile.name,
+            email: createdProfile.email || undefined,
+            phone: createdProfile.phone || undefined,
+            image: createdProfile.image || undefined,
+            signUpMethod: createdProfile.sign_up_method as "email" | "google" | "phone",
+            verified: createdProfile.verified,
+            verificationStatus: createdProfile.verification_status,
+            joinDate: createdProfile.join_date,
+          })
+          return
         }
-
-        const { data: createdProfile, error: createError } = await supabase
-          .from("profiles")
-          .insert(newProfile)
-          .select()
-          .single()
-
-        if (createError) {
-          console.error("Error creating profile:", createError)
-          throw createError
-        }
-
-        setUser({
-          id: createdProfile.id,
-          name: createdProfile.name,
-          email: createdProfile.email || undefined,
-          phone: createdProfile.phone || undefined,
-          image: createdProfile.image || undefined,
-          signUpMethod: createdProfile.sign_up_method,
-          verified: createdProfile.verified,
-          verificationStatus: createdProfile.verification_status,
-          joinDate: createdProfile.join_date,
-        })
-        return
+        throw error
       }
-
-      if (error) throw error
 
       if (data) {
         setUser({
@@ -144,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: data.email || undefined,
           phone: data.phone || undefined,
           image: data.image || undefined,
-          signUpMethod: data.sign_up_method,
+          signUpMethod: data.sign_up_method as "email" | "google" | "phone",
           verified: data.verified,
           verificationStatus: data.verification_status,
           joinDate: data.join_date,
@@ -166,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     phone?: string
     password?: string
     method: string
-  }): Promise<{ success: boolean; error?: string }> => {
+  }): Promise<boolean> => {
     try {
       if (credentials.method === "email" && credentials.email && credentials.password) {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -174,10 +151,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           password: credentials.password,
         })
 
-        if (error) return { success: false, error: error.message }
+        if (error) throw error
         if (data.user) {
           await loadUserProfile(data.user)
-          return { success: true }
+          return true
         }
       } else if (credentials.method === "phone" && credentials.phone && credentials.password) {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -185,17 +162,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           password: credentials.password,
         })
 
-        if (error) return { success: false, error: error.message }
+        if (error) throw error
         if (data.user) {
           await loadUserProfile(data.user)
-          return { success: true }
+          return true
         }
       }
 
-      return { success: false, error: "Invalid credentials" }
-    } catch (error: any) {
+      return false
+    } catch (error) {
       console.error("Sign in error:", error)
-      return { success: false, error: error.message || "An error occurred during sign in" }
+      return false
     }
   }
 
@@ -205,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     phone?: string
     password?: string
     method: "email" | "google" | "phone"
-  }): Promise<{ success: boolean; error?: string }> => {
+  }): Promise<boolean> => {
     try {
       if (userData.method === "email" && userData.email && userData.password) {
         const { data, error } = await supabase.auth.signUp({
@@ -213,15 +190,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           password: userData.password,
           options: {
             data: {
-              full_name: userData.name,
               name: userData.name,
             },
           },
         })
 
-        if (error) return { success: false, error: error.message }
+        if (error) throw error
 
         if (data.user) {
+          // Create profile
           await supabase.from("profiles").insert({
             id: data.user.id,
             name: userData.name,
@@ -231,22 +208,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             verification_status: "none",
             join_date: new Date().toISOString(),
           })
-
-          return { success: true }
         }
+
+        return !!data.user
       } else if (userData.method === "phone" && userData.phone && userData.password) {
         const { data, error } = await supabase.auth.signUp({
           phone: userData.phone,
           password: userData.password,
           options: {
             data: {
-              full_name: userData.name,
               name: userData.name,
             },
           },
         })
 
-        if (error) return { success: false, error: error.message }
+        if (error) throw error
 
         if (data.user) {
           await supabase.from("profiles").insert({
@@ -258,30 +234,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             verification_status: "none",
             join_date: new Date().toISOString(),
           })
-
-          return { success: true }
         }
+
+        return !!data.user
       }
 
-      return { success: false, error: "Invalid sign up method" }
-    } catch (error: any) {
+      return false
+    } catch (error) {
       console.error("Sign up error:", error)
-      return { success: false, error: error.message || "An error occurred during sign up" }
+      return false
     }
   }
 
-  const signInWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
+  const signInWithGoogle = async (): Promise<boolean> => {
     try {
-      const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined
-
-      if (!redirectUrl) {
-        return { success: false, error: "Could not determine redirect URL" }
-      }
-
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: redirectUrl,
+          redirectTo: `${window.location.origin}/auth/callback`,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
@@ -289,33 +259,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       })
 
-      if (error) {
-        console.error("Google OAuth error:", error)
-        return {
-          success: false,
-          error:
-            "Google sign-in requires additional setup. Please use email or phone sign-in, or contact support for assistance.",
-        }
-      }
-
-      return { success: true }
-    } catch (error: any) {
+      if (error) throw error
+      return !!data
+    } catch (error) {
       console.error("Google sign in error:", error)
-      return {
-        success: false,
-        error: "Unable to sign in with Google. Please try email or phone sign-in instead.",
-      }
+      return false
     }
   }
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
-
+      await supabase.auth.signOut()
       setUser(null)
-      router.push("/auth/welcome")
-      router.refresh()
     } catch (error) {
       console.error("Sign out error:", error)
     }
@@ -341,6 +296,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error
 
+      // Reload user with auth user object
       const {
         data: { user: authUser },
       } = await supabase.auth.getUser()

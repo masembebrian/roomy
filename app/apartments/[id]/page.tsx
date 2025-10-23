@@ -3,494 +3,500 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Calendar } from "@/components/ui/calendar"
+import { Separator } from "@/components/ui/separator"
+import { useAuth } from "@/lib/auth"
+import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/lib/supabase"
+import Header from "@/components/header"
+import Footer from "@/components/footer"
+import ChatBox from "@/components/chat-box"
 import {
-  Star,
   MapPin,
+  Star,
   Users,
-  Bed,
-  Bath,
+  Home,
   Wifi,
-  Coffee,
+  Car,
   Wind,
   Tv,
-  Car,
-  Shield,
+  Coffee,
+  Dumbbell,
+  ShowerHead,
   Heart,
   Share2,
   ChevronLeft,
   ChevronRight,
+  Shield,
   CalendarIcon,
-  AlertCircle,
 } from "lucide-react"
-import { useAuth } from "@/lib/auth"
-import { supabase } from "@/lib/supabase"
-import { format, differenceInDays } from "date-fns"
 import type { DateRange } from "react-day-picker"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 
-interface Apartment {
+interface Property {
   id: string
   title: string
   description: string
   price: number
   location: string
-  rating: number
-  reviewCount: number
-  images: string[]
+  type: string
   bedrooms: number
   bathrooms: number
   guests: number
+  images: string[]
   amenities: string[]
-  hostName: string
-  hostImage: string
-  hostJoined: string
-  instantBook: boolean
+  host: {
+    name: string
+    image: string
+    joinDate: string
+    responseRate: number
+    verified: boolean
+  }
+  rating: number
+  reviews: number
 }
 
-const apartments: Record<string, Apartment> = {
-  "1": {
-    id: "1",
-    title: "Modern Apartment in Kampala",
-    description:
-      "Beautiful modern apartment in the heart of Kampala with stunning city views. This spacious 2-bedroom apartment features contemporary furnishings, a fully equipped kitchen, and access to a rooftop terrace. Perfect for both business travelers and tourists looking to explore the vibrant capital city.",
-    price: 85,
-    location: "Kampala, Uganda",
-    rating: 4.8,
-    reviewCount: 124,
-    images: ["/images/kampala-apartment.png", "/images/entebbe-studio.png", "/images/jinja-family-home.png"],
-    bedrooms: 2,
-    bathrooms: 1,
-    guests: 4,
-    amenities: ["WiFi", "Kitchen", "Air conditioning", "TV", "Free parking", "Washer"],
-    hostName: "Sarah Johnson",
-    hostImage: "/images/host-sarah.png",
-    hostJoined: "2020",
-    instantBook: true,
-  },
-  "2": {
-    id: "2",
-    title: "Cozy Studio in Entebbe",
-    description:
-      "Charming studio apartment near Entebbe International Airport and Lake Victoria. This compact yet comfortable space is ideal for solo travelers or couples. Enjoy easy access to the beach, botanical gardens, and wildlife sanctuaries.",
-    price: 45,
-    location: "Entebbe, Uganda",
-    rating: 4.6,
-    reviewCount: 89,
-    images: ["/images/entebbe-studio.png", "/images/kampala-apartment.png", "/images/fort-portal-cottage.png"],
-    bedrooms: 1,
-    bathrooms: 1,
-    guests: 2,
-    amenities: ["WiFi", "Kitchen", "Air conditioning", "Beach access"],
-    hostName: "John Mugisha",
-    hostImage: "/images/host-john.png",
-    hostJoined: "2019",
-    instantBook: false,
-  },
-  "3": {
-    id: "3",
-    title: "Family Home in Jinja",
-    description:
-      "Spacious family home near the source of the Nile in Jinja. Perfect for adventure seekers and families looking to experience white-water rafting, kayaking, and other water sports. The house features a large garden, multiple bedrooms, and a welcoming atmosphere.",
-    price: 120,
-    location: "Jinja, Uganda",
-    rating: 4.9,
-    reviewCount: 156,
-    images: ["/images/jinja-family-home.png", "/images/mukono-villa.png", "/images/kampala-apartment.png"],
-    bedrooms: 4,
-    bathrooms: 3,
-    guests: 8,
-    amenities: ["WiFi", "Kitchen", "Garden", "Free parking", "Washer", "BBQ grill"],
-    hostName: "Emily Nakato",
-    hostImage: "/images/host-emily.png",
-    hostJoined: "2018",
-    instantBook: true,
-  },
-  "4": {
-    id: "4",
-    title: "Luxury Villa in Mukono",
-    description:
-      "Exclusive luxury villa with private pool and garden in Mukono. This elegant property offers privacy, comfort, and modern amenities. Ideal for those seeking a tranquil retreat while still being close to Kampala.",
-    price: 200,
-    location: "Mukono, Uganda",
-    rating: 5.0,
-    reviewCount: 67,
-    images: ["/images/mukono-villa.png", "/images/fort-portal-cottage.png", "/images/jinja-family-home.png"],
-    bedrooms: 3,
-    bathrooms: 2,
-    guests: 6,
-    amenities: ["WiFi", "Kitchen", "Pool", "Garden", "Free parking", "Air conditioning", "Security"],
-    hostName: "David Okello",
-    hostImage: "/images/host-david.png",
-    hostJoined: "2021",
-    instantBook: true,
-  },
-  "5": {
-    id: "5",
-    title: "Cottage in Fort Portal",
-    description:
-      "Rustic cottage with mountain views in Fort Portal, gateway to the Rwenzori Mountains and Queen Elizabeth National Park. Experience authentic Ugandan hospitality in this cozy retreat surrounded by nature.",
-    price: 65,
-    location: "Fort Portal, Uganda",
-    rating: 4.7,
-    reviewCount: 92,
-    images: ["/images/fort-portal-cottage.png", "/images/entebbe-studio.png", "/images/mukono-villa.png"],
-    bedrooms: 2,
-    bathrooms: 1,
-    guests: 4,
-    amenities: ["WiFi", "Kitchen", "Mountain view", "Fireplace", "Garden"],
-    hostName: "Grace Atim",
-    hostImage: "/images/host-grace.png",
-    hostJoined: "2020",
-    instantBook: false,
-  },
-}
-
-const amenityIcons: Record<string, any> = {
-  WiFi: Wifi,
-  Kitchen: Coffee,
-  "Air conditioning": Wind,
-  TV: Tv,
-  "Free parking": Car,
-  Security: Shield,
-}
-
-export default function ApartmentDetailsPage() {
+export default function ApartmentDetail() {
   const params = useParams()
   const router = useRouter()
   const { user } = useAuth()
+  const { toast } = useToast()
+  const [property, setProperty] = useState<Property | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [isFavorite, setIsFavorite] = useState(false)
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
-  const [guests, setGuests] = useState(1)
-  const [showBookingForm, setShowBookingForm] = useState(false)
+  const [guests, setGuests] = useState(2)
+  const [loading, setLoading] = useState(true)
   const [bookingLoading, setBookingLoading] = useState(false)
-  const [bookingError, setBookingError] = useState("")
-  const [bookingSuccess, setBookingSuccess] = useState(false)
-
-  const apartment = apartments[params.id as string]
 
   useEffect(() => {
-    if (!apartment) {
-      router.push("/explore")
+    loadProperty()
+  }, [params.id])
+
+  const loadProperty = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("properties")
+        .select(
+          `
+          *,
+          profiles:host_id (
+            name,
+            image,
+            join_date,
+            verified
+          )
+        `,
+        )
+        .eq("id", params.id)
+        .single()
+
+      if (error) throw error
+
+      if (data) {
+        setProperty({
+          id: data.id,
+          title: data.title,
+          description: data.description,
+          price: data.price_per_night,
+          location: data.location,
+          type: data.property_type,
+          bedrooms: data.bedrooms,
+          bathrooms: data.bathrooms,
+          guests: data.max_guests,
+          images: data.images || [],
+          amenities: data.amenities || [],
+          host: {
+            name: data.profiles?.name || "Host",
+            image: data.profiles?.image || "/images/default-avatar.png",
+            joinDate: data.profiles?.join_date || new Date().toISOString(),
+            responseRate: 95,
+            verified: data.profiles?.verified || false,
+          },
+          rating: data.average_rating || 4.8,
+          reviews: data.review_count || 0,
+        })
+      }
+    } catch (error) {
+      console.error("Error loading property:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load property details",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
     }
-  }, [apartment, router])
-
-  if (!apartment) {
-    return null
   }
 
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % apartment.images.length)
-  }
-
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + apartment.images.length) % apartment.images.length)
-  }
-
-  const calculateTotalPrice = () => {
+  const calculateNights = () => {
     if (!dateRange?.from || !dateRange?.to) return 0
-    const nights = differenceInDays(dateRange.to, dateRange.from)
-    return nights * apartment.price
+    const nights = Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24))
+    return nights
   }
 
-  const handleReserve = async () => {
+  const calculateTotal = () => {
+    if (!property) return 0
+    const nights = calculateNights()
+    const subtotal = property.price * nights
+    const serviceFee = subtotal * 0.1
+    const total = subtotal + serviceFee
+    return { subtotal, serviceFee, total, nights }
+  }
+
+  const handleBooking = async () => {
+    // Require authentication before booking
     if (!user) {
-      router.push(`/auth/signin?redirect=/apartments/${apartment.id}`)
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to book this property",
+        variant: "destructive",
+      })
+      router.push(`/auth/signin?redirect=/apartments/${params.id}`)
       return
     }
 
     if (!dateRange?.from || !dateRange?.to) {
-      setBookingError("Please select check-in and check-out dates")
+      toast({
+        title: "Select dates",
+        description: "Please select check-in and check-out dates",
+        variant: "destructive",
+      })
       return
     }
 
     setBookingLoading(true)
-    setBookingError("")
 
     try {
-      const { data, error } = await supabase.from("bookings").insert({
-        property_id: apartment.id,
-        guest_id: user.id,
-        check_in: format(dateRange.from, "yyyy-MM-dd"),
-        check_out: format(dateRange.to, "yyyy-MM-dd"),
-        guests: guests,
-        total_price: calculateTotalPrice(),
-        status: "pending",
-      })
+      const { subtotal, serviceFee, total, nights } = calculateTotal()
+
+      const { data, error } = await supabase
+        .from("bookings")
+        .insert({
+          property_id: params.id,
+          guest_id: user.id,
+          check_in: dateRange.from.toISOString(),
+          check_out: dateRange.to.toISOString(),
+          guests: guests,
+          total_price: total,
+          status: "confirmed",
+        })
+        .select()
+        .single()
 
       if (error) throw error
 
-      setBookingSuccess(true)
-      setTimeout(() => {
-        router.push("/bookings")
-      }, 2000)
+      toast({
+        title: "Booking confirmed!",
+        description: `Your booking for ${nights} nights has been confirmed.`,
+      })
+
+      router.push("/bookings")
     } catch (error) {
       console.error("Booking error:", error)
-      setBookingError("Failed to create booking. Please try again.")
+      toast({
+        title: "Booking failed",
+        description: "There was an error processing your booking. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setBookingLoading(false)
     }
   }
 
-  const totalPrice = calculateTotalPrice()
-  const nights = dateRange?.from && dateRange?.to ? differenceInDays(dateRange.to, dateRange.from) : 0
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-muted rounded w-1/3" />
+            <div className="h-96 bg-muted rounded" />
+            <div className="h-32 bg-muted rounded" />
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  if (!property) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Property not found</h1>
+            <Button onClick={() => router.push("/explore")}>Back to explore</Button>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  const { subtotal, serviceFee, total, nights } = calculateTotal()
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Image Gallery */}
-        <div className="relative h-[400px] md:h-[500px] rounded-xl overflow-hidden mb-8">
-          <Image
-            src={apartment.images[currentImageIndex] || "/placeholder.svg"}
-            alt={apartment.title}
-            fill
-            className="object-cover"
-          />
-          <button
-            onClick={prevImage}
-            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all"
-            aria-label="Previous image"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <button
-            onClick={nextImage}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all"
-            aria-label="Next image"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            {apartment.images.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentImageIndex(index)}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  index === currentImageIndex ? "bg-white w-8" : "bg-white/50"
-                }`}
-                aria-label={`Go to image ${index + 1}`}
-              />
-            ))}
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Back button */}
+        <Link
+          href="/explore"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
+        >
+          <ChevronLeft className="w-4 h-4 mr-1" />
+          Back to explore
+        </Link>
+
+        {/* Title and actions */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">{property.title}</h1>
+            <div className="flex flex-wrap items-center gap-4 text-sm">
+              <div className="flex items-center gap-1">
+                <Star className="w-4 h-4 fill-primary text-primary" />
+                <span className="font-semibold">{property.rating}</span>
+                <span className="text-muted-foreground">({property.reviews} reviews)</span>
+              </div>
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <MapPin className="w-4 h-4" />
+                {property.location}
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="icon">
+              <Share2 className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="icon">
+              <Heart className="w-4 h-4" />
+            </Button>
           </div>
         </div>
 
+        {/* Images */}
+        <div className="relative mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 rounded-lg overflow-hidden">
+            <div className="relative h-[300px] md:h-[500px]">
+              <Image
+                src={property.images[currentImageIndex] || "/placeholder.svg"}
+                alt={property.title}
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div className="hidden md:grid grid-cols-2 gap-2">
+              {property.images.slice(1, 5).map((img, idx) => (
+                <div key={idx} className="relative h-[245px]">
+                  <Image
+                    src={img || "/placeholder.svg"}
+                    alt={`${property.title} ${idx + 2}`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Navigation arrows */}
+          {property.images.length > 1 && (
+            <>
+              <Button
+                variant="outline"
+                size="icon"
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur"
+                onClick={() => setCurrentImageIndex((prev) => (prev === 0 ? property.images.length - 1 : prev - 1))}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur"
+                onClick={() => setCurrentImageIndex((prev) => (prev === property.images.length - 1 ? 0 : prev + 1))}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </>
+          )}
+        </div>
+
+        {/* Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Details */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* Left column */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Property info */}
             <div>
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold mb-2">{apartment.title}</h1>
-                  <div className="flex items-center gap-4 text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      <span>{apartment.location}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-semibold">{apartment.rating}</span>
-                      <span>({apartment.reviewCount} reviews)</span>
-                    </div>
+                  <h2 className="text-xl font-semibold mb-1">
+                    {property.type} hosted by {property.host.name}
+                  </h2>
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Users className="w-4 h-4" />
+                      {property.guests} guests
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Home className="w-4 h-4" />
+                      {property.bedrooms} bedrooms
+                    </span>
+                    <span>{property.bathrooms} bathrooms</span>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => setIsFavorite(!isFavorite)}>
-                    <Heart className={`w-5 h-5 ${isFavorite ? "fill-pink-500 text-pink-500" : ""}`} />
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <Share2 className="w-5 h-5" />
-                  </Button>
-                </div>
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={property.host.image || "/placeholder.svg"} />
+                  <AvatarFallback>{property.host.name[0]}</AvatarFallback>
+                </Avatar>
               </div>
 
-              {apartment.instantBook && (
-                <Badge className="bg-pink-600 hover:bg-pink-700">
-                  <Star className="w-3 h-3 mr-1" />
-                  Instant Book
-                </Badge>
-              )}
-            </div>
+              <Separator className="my-6" />
 
-            <Separator />
-
-            {/* Property Info */}
-            <div className="flex gap-6">
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-gray-600" />
-                <span>
-                  {apartment.guests} guest{apartment.guests > 1 ? "s" : ""}
-                </span>
+              {/* Host badges */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                {property.host.verified && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Shield className="w-3 h-3" />
+                    Verified Host
+                  </Badge>
+                )}
+                <Badge variant="secondary">{property.host.responseRate}% response rate</Badge>
               </div>
-              <div className="flex items-center gap-2">
-                <Bed className="w-5 h-5 text-gray-600" />
-                <span>
-                  {apartment.bedrooms} bedroom{apartment.bedrooms > 1 ? "s" : ""}
-                </span>
+
+              <Separator className="my-6" />
+
+              {/* Description */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">About this place</h3>
+                <p className="text-muted-foreground leading-relaxed">{property.description}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <Bath className="w-5 h-5 text-gray-600" />
-                <span>
-                  {apartment.bathrooms} bathroom{apartment.bathrooms > 1 ? "s" : ""}
-                </span>
-              </div>
-            </div>
 
-            <Separator />
+              <Separator className="my-6" />
 
-            {/* Description */}
-            <div>
-              <h2 className="text-xl font-semibold mb-3">About this place</h2>
-              <p className="text-gray-700 leading-relaxed">{apartment.description}</p>
-            </div>
-
-            <Separator />
-
-            {/* Amenities */}
-            <div>
-              <h2 className="text-xl font-semibold mb-4">What this place offers</h2>
-              <div className="grid grid-cols-2 gap-4">
-                {apartment.amenities.map((amenity) => {
-                  const Icon = amenityIcons[amenity] || Wifi
-                  return (
-                    <div key={amenity} className="flex items-center gap-3">
-                      <Icon className="w-5 h-5 text-gray-600" />
+              {/* Amenities */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">What this place offers</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {property.amenities.map((amenity, idx) => (
+                    <div key={idx} className="flex items-center gap-3">
+                      {amenity === "WiFi" && <Wifi className="w-5 h-5" />}
+                      {amenity === "Parking" && <Car className="w-5 h-5" />}
+                      {amenity === "Air conditioning" && <Wind className="w-5 h-5" />}
+                      {amenity === "TV" && <Tv className="w-5 h-5" />}
+                      {amenity === "Kitchen" && <Coffee className="w-5 h-5" />}
+                      {amenity === "Gym" && <Dumbbell className="w-5 h-5" />}
+                      {amenity === "Hot water" && <ShowerHead className="w-5 h-5" />}
                       <span>{amenity}</span>
                     </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Host Info */}
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Hosted by {apartment.hostName}</h2>
-              <div className="flex items-center gap-4">
-                <Image
-                  src={apartment.hostImage || "/placeholder.svg"}
-                  alt={apartment.hostName}
-                  width={64}
-                  height={64}
-                  className="rounded-full"
-                />
-                <div>
-                  <p className="font-semibold">{apartment.hostName}</p>
-                  <p className="text-gray-600">Joined in {apartment.hostJoined}</p>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column - Booking Card */}
+          {/* Right column - Booking card */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-8">
+            <Card className="sticky top-24">
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-baseline justify-between">
                   <div>
-                    <span className="text-2xl font-bold">${apartment.price}</span>
-                    <span className="text-gray-600"> / night</span>
+                    <span className="text-2xl font-bold">UGX {property.price.toLocaleString()}</span>
+                    <span className="text-muted-foreground"> / night</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-semibold">{apartment.rating}</span>
+                    <Star className="w-4 h-4 fill-primary text-primary" />
+                    <span className="font-semibold">{property.rating}</span>
                   </div>
                 </div>
 
-                {bookingError && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{bookingError}</AlertDescription>
-                  </Alert>
-                )}
+                <Separator />
 
-                {bookingSuccess && (
-                  <Alert className="bg-green-50 text-green-900 border-green-200">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>Booking successful! Redirecting to bookings...</AlertDescription>
-                  </Alert>
-                )}
+                {/* Date picker */}
+                <div className="space-y-3">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <CalendarIcon className="w-4 h-4" />
+                    Select dates
+                  </label>
+                  <Calendar
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    numberOfMonths={1}
+                    disabled={(date) => date < new Date()}
+                    className="rounded-md border w-full"
+                  />
+                </div>
 
-                {!user ? (
-                  <div className="space-y-4">
-                    <Alert>
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>You need to sign in before booking this property.</AlertDescription>
-                    </Alert>
+                {/* Guests */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Guests
+                  </label>
+                  <div className="flex items-center justify-between border rounded-md p-3">
                     <Button
-                      className="w-full"
-                      onClick={() => router.push(`/auth/signin?redirect=/apartments/${apartment.id}`)}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setGuests(Math.max(1, guests - 1))}
+                      disabled={guests <= 1}
                     >
-                      Sign in to book
+                      -
+                    </Button>
+                    <span className="font-medium">{guests}</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setGuests(Math.min(property.guests, guests + 1))}
+                      disabled={guests >= property.guests}
+                    >
+                      +
                     </Button>
                   </div>
-                ) : (
+                </div>
+
+                {nights > 0 && (
                   <>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium flex items-center gap-2">
-                        <CalendarIcon className="w-4 h-4" />
-                        Select dates
-                      </label>
-                      <Calendar
-                        mode="range"
-                        selected={dateRange}
-                        onSelect={setDateRange}
-                        numberOfMonths={1}
-                        disabled={(date) => date < new Date()}
-                        className="rounded-md border"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        Guests
-                      </label>
-                      <select
-                        value={guests}
-                        onChange={(e) => setGuests(Number(e.target.value))}
-                        className="w-full px-3 py-2 border rounded-md"
-                      >
-                        {Array.from({ length: apartment.guests }, (_, i) => i + 1).map((num) => (
-                          <option key={num} value={num}>
-                            {num} guest{num > 1 ? "s" : ""}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {dateRange?.from && dateRange?.to && (
-                      <div className="space-y-2 pt-4 border-t">
-                        <div className="flex justify-between text-sm">
-                          <span>
-                            ${apartment.price} x {nights} night{nights > 1 ? "s" : ""}
-                          </span>
-                          <span>${totalPrice}</span>
-                        </div>
-                        <div className="flex justify-between font-semibold">
-                          <span>Total</span>
-                          <span>${totalPrice}</span>
-                        </div>
+                    <Separator />
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">
+                          UGX {property.price.toLocaleString()} × {nights} nights
+                        </span>
+                        <span>UGX {subtotal.toLocaleString()}</span>
                       </div>
-                    )}
-
-                    <Button className="w-full" size="lg" onClick={handleReserve} disabled={bookingLoading}>
-                      {bookingLoading ? "Processing..." : "Reserve"}
-                    </Button>
-
-                    <p className="text-xs text-center text-gray-600">{"You won't be charged yet"}</p>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Service fee</span>
+                        <span>UGX {serviceFee.toLocaleString()}</span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between font-semibold text-base">
+                        <span>Total</span>
+                        <span>UGX {total.toLocaleString()}</span>
+                      </div>
+                    </div>
                   </>
                 )}
+
+                <Button className="w-full" size="lg" onClick={handleBooking} disabled={bookingLoading || nights === 0}>
+                  {bookingLoading ? "Processing..." : user ? "Reserve" : "Sign in to book"}
+                </Button>
+
+                {!user && (
+                  <p className="text-xs text-center text-muted-foreground">You need to sign in before booking</p>
+                )}
+
+                {nights > 0 && <p className="text-xs text-center text-muted-foreground">You won't be charged yet</p>}
               </CardContent>
             </Card>
           </div>
         </div>
-      </div>
+      </main>
+      <Footer />
+      <ChatBox />
     </div>
   )
 }
