@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata, Viewport } from "next"
+import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -11,41 +11,15 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Roomy - Find Your Perfect Stay in Uganda",
-  description:
-    "Discover unique apartments, homes, and experiences across Uganda. Book verified properties with local hosts.",
-  keywords: "Uganda accommodation, apartments Uganda, vacation rentals, Kampala stays",
+  description: "Discover and book unique accommodations across Uganda with Roomy",
+  keywords: "accommodation, Uganda, booking, travel, vacation rentals",
   authors: [{ name: "Roomy" }],
-  creator: "Roomy",
-  publisher: "Roomy",
   openGraph: {
+    title: "Roomy - Find Your Perfect Stay in Uganda",
+    description: "Discover and book unique accommodations across Uganda",
     type: "website",
-    locale: "en_UG",
-    url: "https://roomy.ug",
-    title: "Roomy - Find Your Perfect Stay in Uganda",
-    description: "Discover unique apartments, homes, and experiences across Uganda",
-    siteName: "Roomy",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Roomy - Find Your Perfect Stay in Uganda",
-    description: "Discover unique apartments, homes, and experiences across Uganda",
-  },
-  robots: {
-    index: true,
-    follow: true,
   },
     generator: 'v0.app'
-}
-
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 5,
-  userScalable: true,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
-  ],
 }
 
 export default function RootLayout({

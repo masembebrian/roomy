@@ -1,55 +1,49 @@
-import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import Header from "@/components/header"
-import Footer from "@/components/footer"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 
 export default function LastMinuteDealsLoading() {
   return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-        {/* Hero Section Skeleton */}
-        <section className="relative py-12 sm:py-20">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center space-y-6">
-              <Skeleton className="h-10 w-48 mx-auto" />
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-24 w-full" />
-            </div>
-          </div>
-        </section>
-
-        {/* Filters Skeleton */}
-        <section className="py-8 border-t border-b">
-          <div className="container mx-auto px-4">
-            <div className="flex gap-4">
-              <Skeleton className="h-10 w-[200px]" />
-              <Skeleton className="h-10 w-[200px]" />
-            </div>
-          </div>
-        </section>
-
-        {/* Deals Grid Skeleton */}
-        <section className="py-12">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <Card key={i} className="overflow-hidden">
-                  <Skeleton className="w-full h-64" />
-                  <CardContent className="p-6 space-y-4">
-                    <Skeleton className="h-6 w-full" />
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-8 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
+    <div className="min-h-screen">
+      {/* Hero Skeleton */}
+      <div className="bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 py-20">
+        <div className="container mx-auto px-4">
+          <Skeleton className="h-8 w-48 mb-6 bg-white/20" />
+          <Skeleton className="h-16 w-96 mb-4 bg-white/20" />
+          <Skeleton className="h-6 w-full max-w-2xl bg-white/20" />
+        </div>
       </div>
-      <Footer />
-    </>
+
+      {/* Filters Skeleton */}
+      <div className="border-b py-4">
+        <div className="container mx-auto px-4">
+          <div className="flex gap-4">
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-10 w-48" />
+          </div>
+        </div>
+      </div>
+
+      {/* Cards Skeleton */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i}>
+              <Skeleton className="h-48 w-full" />
+              <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-2/3" />
+              </CardContent>
+              <CardFooter>
+                <Skeleton className="h-10 w-full" />
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }
