@@ -4,7 +4,6 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -49,14 +48,16 @@ import {
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useAuth } from "@/lib/auth"
+import { useLanguage } from "@/lib/i18n/context"
+import { languages } from "@/lib/i18n/translations"
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [selectedLanguage, setSelectedLanguage] = useState("English")
   const { theme, setTheme } = useTheme()
   const { user, signOut, loading } = useAuth()
+  const { language, setLanguage, t } = useLanguage()
   const router = useRouter()
   const pathname = usePathname()
 
@@ -80,21 +81,16 @@ export default function Header() {
     router.push("/")
   }
 
-  const languages = [
-    { code: "en", name: "English", nativeName: "English" },
-    { code: "lg", name: "Luganda", nativeName: "Luganda" },
-    { code: "sw", name: "Swahili", nativeName: "Kiswahili" },
-    { code: "fr", name: "French", nativeName: "Français" },
-  ]
+  const currentLanguage = languages.find((lang) => lang.code === language)
 
   const navigationItems = [
     {
-      title: "Explore",
+      title: t("explore"),
       href: "/explore",
       description: "Discover amazing properties across Uganda",
     },
     {
-      title: "Experiences",
+      title: t("experiences"),
       href: "/experiences",
       description: "Book unique local experiences and activities",
     },
@@ -102,48 +98,48 @@ export default function Header() {
 
   const hostingItems = [
     {
-      title: "List Your Property",
+      title: t("listYourProperty"),
       href: "/list-property",
-      description: "Start earning by hosting guests",
+      description: t("listPropertyDesc"),
       icon: Home,
     },
     {
-      title: "Host Dashboard",
+      title: t("hostDashboard"),
       href: "/host-dashboard",
-      description: "Manage your listings and bookings",
+      description: t("manageListings"),
       icon: Settings,
     },
     {
-      title: "Become a Host",
+      title: t("becomeHost"),
       href: "/become-host",
-      description: "Learn how to get started",
+      description: t("becomeHostDesc"),
       icon: Users,
     },
     {
-      title: "Host Protection",
+      title: t("hostProtection"),
       href: "/host-protection",
-      description: "Coverage for your property",
+      description: t("hostProtectionDesc"),
       icon: Shield,
     },
   ]
 
   const supportItems = [
     {
-      title: "Help Center",
+      title: t("helpCenter"),
       href: "/help",
-      description: "Find answers to common questions",
+      description: t("helpCenterDesc"),
       icon: HelpCircle,
     },
     {
-      title: "Safety Information",
+      title: t("safetyInfo"),
       href: "/safety",
-      description: "Stay safe while traveling",
+      description: t("safetyInfoDesc"),
       icon: Shield,
     },
     {
-      title: "Contact Us",
+      title: t("contactUs"),
       href: "/contact",
-      description: "Get in touch with our team",
+      description: t("contactUsDesc"),
       icon: Users,
     },
   ]
@@ -155,11 +151,13 @@ export default function Header() {
       }`}
     >
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center justify-between gap-2 sm:gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Image src="/images/roomy-logo.png" alt="Roomy" width={32} height={32} className="w-8 h-8" />
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
+            <div className="relative w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-white text-xl sm:text-2xl font-bold">R</span>
+            </div>
+            <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hidden sm:inline">
               Roomy
             </span>
           </Link>
@@ -185,7 +183,7 @@ export default function Header() {
 
                 {/* Hosting Dropdown */}
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger>Hosting</NavigationMenuTrigger>
+                  <NavigationMenuTrigger>{t("hosting")}</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <div className="grid gap-3 p-6 w-[400px]">
                       <div className="row-span-3">
@@ -195,10 +193,8 @@ export default function Header() {
                             href="/become-host"
                           >
                             <Home className="h-6 w-6" />
-                            <div className="mb-2 mt-4 text-lg font-medium">Become a Host</div>
-                            <p className="text-sm leading-tight text-muted-foreground">
-                              Start earning by sharing your space with travelers
-                            </p>
+                            <div className="mb-2 mt-4 text-lg font-medium">{t("becomeHost")}</div>
+                            <p className="text-sm leading-tight text-muted-foreground">{t("becomeHostDesc")}</p>
                           </Link>
                         </NavigationMenuLink>
                       </div>
@@ -224,7 +220,7 @@ export default function Header() {
 
                 {/* Support Dropdown */}
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger>Support</NavigationMenuTrigger>
+                  <NavigationMenuTrigger>{t("support")}</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <div className="grid gap-3 p-6 w-[400px]">
                       {supportItems.map((item) => (
@@ -251,12 +247,12 @@ export default function Header() {
           </div>
 
           {/* Search Bar - Desktop */}
-          <div className="hidden md:flex flex-1 max-w-sm mx-8">
+          <div className="hidden md:flex flex-1 max-w-sm mx-4">
             <form onSubmit={handleSearch} className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 type="search"
-                placeholder="Search destinations..."
+                placeholder={t("searchDestinations")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4"
@@ -265,7 +261,7 @@ export default function Header() {
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center space-x-1 sm:space-x-2">
             {/* Theme Toggle */}
             <Button
               variant="ghost"
@@ -286,17 +282,23 @@ export default function Header() {
                   <span className="sr-only">Change language</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Language / Lulimi</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="flex items-center gap-2">
+                  <Languages className="h-4 w-4" />
+                  {t("language")}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {languages.map((lang) => (
                   <DropdownMenuItem
                     key={lang.code}
-                    onClick={() => setSelectedLanguage(lang.name)}
-                    className="flex items-center justify-between"
+                    onClick={() => setLanguage(lang.code)}
+                    className="flex items-center justify-between cursor-pointer"
                   >
-                    <span>{lang.nativeName}</span>
-                    {selectedLanguage === lang.name && <span className="text-primary text-xs">✓</span>}
+                    <span className="flex items-center gap-2">
+                      <span className="text-lg">{lang.flag}</span>
+                      <span>{lang.nativeName}</span>
+                    </span>
+                    {language === lang.code && <span className="text-primary font-bold">✓</span>}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -310,11 +312,11 @@ export default function Header() {
                     <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex">
                       <Bell className="h-4 w-4" />
                       <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs">3</Badge>
-                      <span className="sr-only">Notifications</span>
+                      <span className="sr-only">{t("notifications")}</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-80">
-                    <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                    <DropdownMenuLabel>{t("notifications")}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>
                       <div className="flex flex-col space-y-1">
@@ -330,7 +332,7 @@ export default function Header() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href="/notifications">View all notifications</Link>
+                      <Link href="/notifications">View all {t("notifications").toLowerCase()}</Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -358,55 +360,55 @@ export default function Header() {
                     <DropdownMenuItem asChild>
                       <Link href="/profile">
                         <User className="mr-2 h-4 w-4" />
-                        Profile
+                        {t("profile")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/bookings">
                         <Calendar className="mr-2 h-4 w-4" />
-                        My Bookings
+                        {t("myBookings")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/favorites">
                         <Heart className="mr-2 h-4 w-4" />
-                        Favorites
+                        {t("favorites")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link href="/host-dashboard">
                         <Home className="mr-2 h-4 w-4" />
-                        Host Dashboard
+                        {t("hostDashboard")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/list-property">
                         <MapPin className="mr-2 h-4 w-4" />
-                        List Property
+                        {t("listProperty")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link href="/settings">
                         <Settings className="mr-2 h-4 w-4" />
-                        Settings
+                        {t("settings")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="mr-2 h-4 w-4" />
-                      Log out
+                      {t("logOut")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
             ) : (
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" asChild className="hidden sm:inline-flex">
-                  <Link href="/auth/signin">Sign In</Link>
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <Button variant="ghost" asChild className="hidden sm:inline-flex" size="sm">
+                  <Link href="/auth/signin">{t("signIn")}</Link>
                 </Button>
                 <Button asChild size="sm">
-                  <Link href="/auth/signup">Sign Up</Link>
+                  <Link href="/auth/signup">{t("signUp")}</Link>
                 </Button>
               </div>
             )}
@@ -442,7 +444,7 @@ export default function Header() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                     <Input
                       type="search"
-                      placeholder="Search destinations..."
+                      placeholder={t("searchDestinations")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10"
@@ -457,7 +459,7 @@ export default function Header() {
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <MapPin className="h-5 w-5" />
-                      <span>Explore</span>
+                      <span>{t("explore")}</span>
                     </Link>
                     <Link
                       href="/experiences"
@@ -465,11 +467,11 @@ export default function Header() {
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <Camera className="h-5 w-5" />
-                      <span>Experiences</span>
+                      <span>{t("experiences")}</span>
                     </Link>
 
                     <div className="border-t pt-4">
-                      <h3 className="font-semibold mb-3">Hosting</h3>
+                      <h3 className="font-semibold mb-3">{t("hosting")}</h3>
                       {hostingItems.map((item) => (
                         <Link
                           key={item.title}
@@ -484,7 +486,7 @@ export default function Header() {
                     </div>
 
                     <div className="border-t pt-4">
-                      <h3 className="font-semibold mb-3">Support</h3>
+                      <h3 className="font-semibold mb-3">{t("support")}</h3>
                       {supportItems.map((item) => (
                         <Link
                           key={item.title}
@@ -503,18 +505,19 @@ export default function Header() {
                   <div className="border-t pt-4">
                     <h3 className="font-semibold mb-3 flex items-center gap-2">
                       <Languages className="h-4 w-4" />
-                      Language / Lulimi
+                      {t("language")}
                     </h3>
                     <div className="space-y-2">
                       {languages.map((lang) => (
                         <Button
                           key={lang.code}
-                          variant={selectedLanguage === lang.name ? "secondary" : "ghost"}
+                          variant={language === lang.code ? "secondary" : "ghost"}
                           className="w-full justify-start"
-                          onClick={() => setSelectedLanguage(lang.name)}
+                          onClick={() => setLanguage(lang.code)}
                         >
+                          <span className="text-lg mr-2">{lang.flag}</span>
                           <span className="flex-1 text-left">{lang.nativeName}</span>
-                          {selectedLanguage === lang.name && <span className="text-primary text-xs">✓</span>}
+                          {language === lang.code && <span className="text-primary font-bold">✓</span>}
                         </Button>
                       ))}
                     </div>
@@ -546,7 +549,7 @@ export default function Header() {
                     <div className="border-t pt-4">
                       <Button variant="outline" onClick={handleSignOut} className="w-full justify-start bg-transparent">
                         <LogOut className="mr-2 h-4 w-4" />
-                        Log out
+                        {t("logOut")}
                       </Button>
                     </div>
                   ) : (
@@ -557,10 +560,10 @@ export default function Header() {
                         className="w-full bg-transparent"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <Link href="/auth/signin">Sign In</Link>
+                        <Link href="/auth/signin">{t("signIn")}</Link>
                       </Button>
                       <Button asChild className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
-                        <Link href="/auth/signup">Sign Up</Link>
+                        <Link href="/auth/signup">{t("signUp")}</Link>
                       </Button>
                     </div>
                   )}
