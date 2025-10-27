@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Calendar } from "@/components/ui/calendar"
 import { Separator } from "@/components/ui/separator"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase"
@@ -34,6 +35,8 @@ import {
   ChevronRight,
   Shield,
   CalendarIcon,
+  AlertCircle,
+  LogIn,
 } from "lucide-react"
 import type { DateRange } from "react-day-picker"
 
@@ -63,7 +66,7 @@ interface Property {
 export default function ApartmentDetail() {
   const params = useParams()
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const { toast } = useToast()
   const [property, setProperty] = useState<Property | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -139,7 +142,7 @@ export default function ApartmentDetail() {
   }
 
   const calculateTotal = () => {
-    if (!property) return 0
+    if (!property) return { subtotal: 0, serviceFee: 0, total: 0, nights: 0 }
     const nights = calculateNights()
     const subtotal = property.price * nights
     const serviceFee = subtotal * 0.1
@@ -151,11 +154,12 @@ export default function ApartmentDetail() {
     // Require authentication before booking
     if (!user) {
       toast({
-        title: "Authentication required",
-        description: "Please sign in to book this property",
+        title: "Sign in required",
+        description: "Please create an account or sign in to book this property",
         variant: "destructive",
       })
-      router.push(`/auth/signin?redirect=/apartments/${params.id}`)
+      // Redirect to sign up page with return URL
+      router.push(`/auth/signup?redirect=/apartments/${params.id}`)
       return
     }
 
@@ -207,7 +211,7 @@ export default function ApartmentDetail() {
     }
   }
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -415,6 +419,16 @@ export default function ApartmentDetail() {
 
                 <Separator />
 
+                {/* Authentication Warning */}
+                {!user && (
+                  <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+                    <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    <AlertDescription className="text-amber-800 dark:text-amber-200">
+                      You need to create an account or sign in to book this property
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 {/* Date picker */}
                 <div className="space-y-3">
                   <label className="text-sm font-medium flex items-center gap-2">
@@ -482,14 +496,27 @@ export default function ApartmentDetail() {
                 )}
 
                 <Button className="w-full" size="lg" onClick={handleBooking} disabled={bookingLoading || nights === 0}>
-                  {bookingLoading ? "Processing..." : user ? "Reserve" : "Sign in to book"}
+                  {bookingLoading ? (
+                    "Processing..."
+                  ) : user ? (
+                    "Reserve"
+                  ) : (
+                    <>
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Sign in to book
+                    </>
+                  )}
                 </Button>
 
                 {!user && (
-                  <p className="text-xs text-center text-muted-foreground">You need to sign in before booking</p>
+                  <p className="text-xs text-center text-muted-foreground">
+                    Create an account or sign in to complete your booking
+                  </p>
                 )}
 
-                {nights > 0 && <p className="text-xs text-center text-muted-foreground">You won't be charged yet</p>}
+                {user && nights > 0 && (
+                  <p className="text-xs text-center text-muted-foreground">You won't be charged yet</p>
+                )}
               </CardContent>
             </Card>
           </div>

@@ -45,25 +45,18 @@ import {
   Moon,
   Sun,
   Globe,
+  Languages,
 } from "lucide-react"
 import { useTheme } from "next-themes"
-
-// Mock user data - in real app this would come from auth context
-const mockUser = {
-  id: "1",
-  name: "John Doe",
-  email: "john@example.com",
-  avatar: "/images/default-avatar.png",
-  isHost: true,
-  notifications: 3,
-  isAuthenticated: true,
-}
+import { useAuth } from "@/lib/auth"
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [selectedLanguage, setSelectedLanguage] = useState("English")
   const { theme, setTheme } = useTheme()
+  const { user, signOut, loading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
 
@@ -81,6 +74,18 @@ export default function Header() {
       router.push(`/explore?search=${encodeURIComponent(searchQuery)}`)
     }
   }
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push("/")
+  }
+
+  const languages = [
+    { code: "en", name: "English", nativeName: "English" },
+    { code: "lg", name: "Luganda", nativeName: "Luganda" },
+    { code: "sw", name: "Swahili", nativeName: "Kiswahili" },
+    { code: "fr", name: "French", nativeName: "Français" },
+  ]
 
   const navigationItems = [
     {
@@ -260,7 +265,7 @@ export default function Header() {
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Theme Toggle */}
             <Button
               variant="ghost"
@@ -273,34 +278,39 @@ export default function Header() {
               <span className="sr-only">Toggle theme</span>
             </Button>
 
-            {/* Language Selector */}
+            {/* Language Selector - Desktop */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="hidden md:inline-flex">
+                <Button variant="ghost" size="icon" className="hidden sm:inline-flex">
                   <Globe className="h-4 w-4" />
+                  <span className="sr-only">Change language</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Language</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Language / Lulimi</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>English</DropdownMenuItem>
-                <DropdownMenuItem>Luganda</DropdownMenuItem>
-                <DropdownMenuItem>Swahili</DropdownMenuItem>
+                {languages.map((lang) => (
+                  <DropdownMenuItem
+                    key={lang.code}
+                    onClick={() => setSelectedLanguage(lang.name)}
+                    className="flex items-center justify-between"
+                  >
+                    <span>{lang.nativeName}</span>
+                    {selectedLanguage === lang.name && <span className="text-primary text-xs">✓</span>}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {mockUser.isAuthenticated ? (
+            {!loading && user ? (
               <>
                 {/* Notifications */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="relative">
+                    <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex">
                       <Bell className="h-4 w-4" />
-                      {mockUser.notifications > 0 && (
-                        <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs">
-                          {mockUser.notifications}
-                        </Badge>
-                      )}
+                      <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs">3</Badge>
+                      <span className="sr-only">Notifications</span>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-80">
@@ -330,16 +340,18 @@ export default function Header() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={mockUser.avatar || "/placeholder.svg"} alt={mockUser.name} />
-                        <AvatarFallback>{mockUser.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={user.image || "/images/default-avatar.png"} alt={user.name} />
+                        <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end" forceMount>
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{mockUser.name}</p>
-                        <p className="text-xs leading-none text-muted-foreground">{mockUser.email}</p>
+                        <p className="text-sm font-medium leading-none">{user.name}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email || user.phone || "Roomy User"}
+                        </p>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
@@ -361,23 +373,19 @@ export default function Header() {
                         Favorites
                       </Link>
                     </DropdownMenuItem>
-                    {mockUser.isHost && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <Link href="/host-dashboard">
-                            <Home className="mr-2 h-4 w-4" />
-                            Host Dashboard
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/list-property">
-                            <MapPin className="mr-2 h-4 w-4" />
-                            List Property
-                          </Link>
-                        </DropdownMenuItem>
-                      </>
-                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/host-dashboard">
+                        <Home className="mr-2 h-4 w-4" />
+                        Host Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/list-property">
+                        <MapPin className="mr-2 h-4 w-4" />
+                        List Property
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link href="/settings">
@@ -385,7 +393,7 @@ export default function Header() {
                         Settings
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="mr-2 h-4 w-4" />
                       Log out
                     </DropdownMenuItem>
@@ -394,10 +402,10 @@ export default function Header() {
               </>
             ) : (
               <div className="flex items-center space-x-2">
-                <Button variant="ghost" asChild>
+                <Button variant="ghost" asChild className="hidden sm:inline-flex">
                   <Link href="/auth/signin">Sign In</Link>
                 </Button>
-                <Button asChild>
+                <Button asChild size="sm">
                   <Link href="/auth/signup">Sign Up</Link>
                 </Button>
               </div>
@@ -408,10 +416,27 @@ export default function Header() {
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="lg:hidden">
                   <Menu className="h-5 w-5" />
+                  <span className="sr-only">Menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80">
+              <SheetContent side="right" className="w-80 overflow-y-auto">
                 <div className="flex flex-col space-y-6 mt-6">
+                  {/* Mobile User Info */}
+                  {user && (
+                    <div className="flex items-center space-x-3 pb-4 border-b">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={user.image || "/images/default-avatar.png"} alt={user.name} />
+                        <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{user.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {user.email || user.phone || "Roomy User"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Mobile Search */}
                   <form onSubmit={handleSearch} className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -474,6 +499,27 @@ export default function Header() {
                     </div>
                   </nav>
 
+                  {/* Mobile Language Selector */}
+                  <div className="border-t pt-4">
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <Languages className="h-4 w-4" />
+                      Language / Lulimi
+                    </h3>
+                    <div className="space-y-2">
+                      {languages.map((lang) => (
+                        <Button
+                          key={lang.code}
+                          variant={selectedLanguage === lang.name ? "secondary" : "ghost"}
+                          className="w-full justify-start"
+                          onClick={() => setSelectedLanguage(lang.name)}
+                        >
+                          <span className="flex-1 text-left">{lang.nativeName}</span>
+                          {selectedLanguage === lang.name && <span className="text-primary text-xs">✓</span>}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Mobile Theme Toggle */}
                   <div className="border-t pt-4">
                     <Button
@@ -494,6 +540,30 @@ export default function Header() {
                       )}
                     </Button>
                   </div>
+
+                  {/* Mobile Auth Actions */}
+                  {user ? (
+                    <div className="border-t pt-4">
+                      <Button variant="outline" onClick={handleSignOut} className="w-full justify-start bg-transparent">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Log out
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="border-t pt-4 space-y-2">
+                      <Button
+                        variant="outline"
+                        asChild
+                        className="w-full bg-transparent"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <Link href="/auth/signin">Sign In</Link>
+                      </Button>
+                      <Button asChild className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Link href="/auth/signup">Sign Up</Link>
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
