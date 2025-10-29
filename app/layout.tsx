@@ -11,14 +11,7 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Roomy - Find Your Perfect Stay in Uganda",
-  description: "Discover and book unique accommodations across Uganda with Roomy",
-  keywords: "accommodation, Uganda, booking, travel, vacation rentals",
-  authors: [{ name: "Roomy" }],
-  openGraph: {
-    title: "Roomy - Find Your Perfect Stay in Uganda",
-    description: "Discover and book unique accommodations across Uganda",
-    type: "website",
-  },
+  description: "Discover and book amazing properties across Uganda",
     generator: 'v0.app'
 }
 

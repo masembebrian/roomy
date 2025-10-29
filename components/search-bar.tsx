@@ -72,8 +72,8 @@ export default function SearchBar() {
 
   return (
     <Card className="w-full max-w-4xl mx-auto shadow-lg">
-      <CardContent className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <CardContent className="p-4 sm:p-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Location */}
           <div className="relative">
             <Label htmlFor="location" className="text-sm font-medium mb-2 block">
@@ -100,7 +100,7 @@ export default function SearchBar() {
                     {filteredLocations.map((location) => (
                       <button
                         key={location}
-                        className="w-full text-left px-3 py-2 hover:bg-muted rounded-md transition-colors"
+                        className="w-full text-left px-3 py-2 hover:bg-muted rounded-md transition-colors touch-manipulation"
                         onClick={() => {
                           setSearchParams((prev) => ({ ...prev, location }))
                           setShowLocationSuggestions(false)
@@ -178,18 +178,18 @@ export default function SearchBar() {
                   {totalGuests > 0 ? `${totalGuests} guest${totalGuests > 1 ? "s" : ""}` : "Add guests"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80" align="start">
+              <PopoverContent className="w-[calc(100vw-2rem)] sm:w-80 max-w-sm" align="start">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-medium">Adults</div>
-                      <div className="text-sm text-muted-foreground">Ages 13 or above</div>
+                      <div className="font-medium text-sm sm:text-base">Adults</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground">Ages 13 or above</div>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-8 w-8 bg-transparent"
+                        className="h-8 w-8 bg-transparent touch-manipulation"
                         onClick={() => updateGuests("adults", false)}
                         disabled={searchParams.guests.adults <= 1}
                       >
@@ -199,7 +199,7 @@ export default function SearchBar() {
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-8 w-8 bg-transparent"
+                        className="h-8 w-8 bg-transparent touch-manipulation"
                         onClick={() => updateGuests("adults", true)}
                       >
                         <Plus className="h-4 w-4" />
@@ -209,14 +209,14 @@ export default function SearchBar() {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-medium">Children</div>
-                      <div className="text-sm text-muted-foreground">Ages 2-12</div>
+                      <div className="font-medium text-sm sm:text-base">Children</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground">Ages 2-12</div>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-8 w-8 bg-transparent"
+                        className="h-8 w-8 bg-transparent touch-manipulation"
                         onClick={() => updateGuests("children", false)}
                         disabled={searchParams.guests.children <= 0}
                       >
@@ -226,7 +226,7 @@ export default function SearchBar() {
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-8 w-8 bg-transparent"
+                        className="h-8 w-8 bg-transparent touch-manipulation"
                         onClick={() => updateGuests("children", true)}
                       >
                         <Plus className="h-4 w-4" />
@@ -236,14 +236,14 @@ export default function SearchBar() {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-medium">Infants</div>
-                      <div className="text-sm text-muted-foreground">Under 2</div>
+                      <div className="font-medium text-sm sm:text-base">Infants</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground">Under 2</div>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-8 w-8 bg-transparent"
+                        className="h-8 w-8 bg-transparent touch-manipulation"
                         onClick={() => updateGuests("infants", false)}
                         disabled={searchParams.guests.infants <= 0}
                       >
@@ -253,7 +253,7 @@ export default function SearchBar() {
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-8 w-8 bg-transparent"
+                        className="h-8 w-8 bg-transparent touch-manipulation"
                         onClick={() => updateGuests("infants", true)}
                       >
                         <Plus className="h-4 w-4" />
@@ -267,11 +267,11 @@ export default function SearchBar() {
         </div>
 
         {/* Search Button */}
-        <div className="mt-6 flex justify-center">
+        <div className="mt-4 sm:mt-6 flex justify-center">
           <Button
             onClick={handleSearch}
             size="lg"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8"
+            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 sm:px-8"
           >
             <Search className="mr-2 h-4 w-4" />
             Search Properties
@@ -280,16 +280,28 @@ export default function SearchBar() {
 
         {/* Quick Filters */}
         <div className="mt-4 flex flex-wrap gap-2 justify-center">
-          <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+          <Badge
+            variant="secondary"
+            className="cursor-pointer hover:bg-primary hover:text-primary-foreground text-xs sm:text-sm touch-manipulation"
+          >
             Entire homes
           </Badge>
-          <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+          <Badge
+            variant="secondary"
+            className="cursor-pointer hover:bg-primary hover:text-primary-foreground text-xs sm:text-sm touch-manipulation"
+          >
             Pet-friendly
           </Badge>
-          <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+          <Badge
+            variant="secondary"
+            className="cursor-pointer hover:bg-primary hover:text-primary-foreground text-xs sm:text-sm touch-manipulation"
+          >
             Free WiFi
           </Badge>
-          <Badge variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+          <Badge
+            variant="secondary"
+            className="cursor-pointer hover:bg-primary hover:text-primary-foreground text-xs sm:text-sm touch-manipulation"
+          >
             Pool
           </Badge>
         </div>

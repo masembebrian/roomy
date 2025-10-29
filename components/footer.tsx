@@ -110,10 +110,10 @@ export default function Footer() {
     <footer className="bg-muted/30 border-t">
       {/* Newsletter Section */}
       <div className="border-b">
-        <div className="container mx-auto px-4 py-12">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <div className="max-w-2xl mx-auto text-center">
-            <h3 className="text-2xl font-bold mb-4">Stay Updated with Roomy</h3>
-            <p className="text-muted-foreground mb-6">
+            <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Stay Updated with Roomy</h3>
+            <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base px-4">
               Get the latest travel tips, exclusive deals, and new feature announcements delivered to your inbox.
             </p>
             <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
@@ -125,7 +125,7 @@ export default function Footer() {
                 required
                 className="flex-1"
               />
-              <Button type="submit" disabled={isSubscribed}>
+              <Button type="submit" disabled={isSubscribed} className="w-full sm:w-auto">
                 {isSubscribed ? (
                   <>
                     <CheckCircle className="w-4 h-4 mr-2" />
@@ -147,13 +147,13 @@ export default function Footer() {
       </div>
 
       {/* Main Footer Content */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6 sm:gap-8">
           {/* Company Info */}
-          <div className="col-span-2 md:col-span-3 lg:col-span-1">
+          <div className="sm:col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center space-x-2 mb-4">
               <Image src="/images/roomy-logo.png" alt="Roomy" width={32} height={32} className="w-8 h-8" />
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Roomy
               </span>
             </Link>
@@ -163,15 +163,15 @@ export default function Footer() {
             </p>
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4" />
+                <MapPin className="w-4 h-4 flex-shrink-0" />
                 <span>Kampala, Uganda</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Phone className="w-4 h-4" />
+                <Phone className="w-4 h-4 flex-shrink-0" />
                 <span>+256 700 123 456</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Mail className="w-4 h-4" />
+                <Mail className="w-4 h-4 flex-shrink-0" />
                 <span>hello@roomy.ug</span>
               </div>
             </div>
@@ -180,13 +180,13 @@ export default function Footer() {
           {/* Footer Links */}
           {footerSections.map((section) => (
             <div key={section.title} className="col-span-1">
-              <h4 className="font-semibold mb-4">{section.title}</h4>
+              <h4 className="font-semibold mb-3 sm:mb-4 text-sm sm:text-base">{section.title}</h4>
               <ul className="space-y-2">
                 {section.links.map((link) => (
                   <li key={link.name}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {link.name}
                     </Link>
@@ -198,11 +198,11 @@ export default function Footer() {
         </div>
 
         {/* Trust Indicators */}
-        <div className="mt-12 pt-8 border-t">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {trustIndicators.map((indicator, index) => (
-              <div key={index} className="flex items-center space-x-2 text-sm">
-                <indicator.icon className="w-4 h-4 text-primary" />
+              <div key={index} className="flex items-center space-x-2 text-xs sm:text-sm">
+                <indicator.icon className="w-4 h-4 text-primary flex-shrink-0" />
                 <span className="text-muted-foreground">{indicator.text}</span>
               </div>
             ))}
@@ -210,10 +210,10 @@ export default function Footer() {
         </div>
 
         {/* Social Links & App Downloads */}
-        <div className="mt-8 pt-8 border-t">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium">Follow us:</span>
+        <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 gap-4">
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+              <span className="text-xs sm:text-sm font-medium">Follow us:</span>
               <div className="flex space-x-3">
                 {socialLinks.map((social) => (
                   <Link
@@ -221,7 +221,7 @@ export default function Footer() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-muted-foreground hover:text-foreground transition-colors touch-manipulation"
                   >
                     <social.icon className="w-5 h-5" />
                     <span className="sr-only">{social.name}</span>
@@ -230,8 +230,8 @@ export default function Footer() {
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium">Get the app:</span>
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
+              <span className="text-xs sm:text-sm font-medium">Get the app:</span>
               <div className="flex space-x-2">
                 <Link href="#" className="block">
                   <Image
@@ -239,7 +239,7 @@ export default function Footer() {
                     alt="Download on App Store"
                     width={120}
                     height={40}
-                    className="h-10 w-auto"
+                    className="h-8 sm:h-10 w-auto"
                   />
                 </Link>
                 <Link href="#" className="block">
@@ -248,7 +248,7 @@ export default function Footer() {
                     alt="Get it on Google Play"
                     width={120}
                     height={40}
-                    className="h-10 w-auto"
+                    className="h-8 sm:h-10 w-auto"
                   />
                 </Link>
               </div>
@@ -259,30 +259,30 @@ export default function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t bg-muted/50">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              <span>© 2024 Roomy Uganda. All rights reserved.</span>
-              <Separator orientation="vertical" className="h-4" />
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 gap-4">
+            <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground text-center">
+              <span>© 2025 Roomy Uganda. All rights reserved.</span>
+              <Separator orientation="vertical" className="h-4 hidden sm:block" />
               <Link href="/privacy-policy" className="hover:text-foreground transition-colors">
                 Privacy Policy
               </Link>
-              <Separator orientation="vertical" className="h-4" />
+              <Separator orientation="vertical" className="h-4 hidden sm:block" />
               <Link href="/terms-of-service" className="hover:text-foreground transition-colors">
                 Terms of Service
               </Link>
-              <Separator orientation="vertical" className="h-4" />
+              <Separator orientation="vertical" className="h-4 hidden sm:block" />
               <Link href="/sitemap" className="hover:text-foreground transition-colors">
                 Sitemap
               </Link>
             </div>
 
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <div className="flex items-center space-x-2 text-xs sm:text-sm text-muted-foreground">
                 <Globe className="w-4 h-4" />
                 <span>English (US)</span>
               </div>
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <div className="flex items-center space-x-2 text-xs sm:text-sm text-muted-foreground">
                 <span>UGX</span>
               </div>
             </div>
