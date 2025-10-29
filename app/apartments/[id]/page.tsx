@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,7 +24,6 @@ import {
   Wind,
   Shield,
   Heart,
-  Share2,
   CreditCard,
   LogIn,
   Loader2,
@@ -35,16 +33,18 @@ import {
 import { useAuth } from "@/lib/auth"
 import { useLanguage } from "@/lib/i18n/context"
 import { useToast } from "@/hooks/use-toast"
-import { supabase } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/client"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { ImageCarousel } from "@/components/image-carousel"
+import { ShareButton } from "@/components/share-button"
 import {
+  type PaymentMethod,
   processMTNMoMoPayment,
   processAirtelMoneyPayment,
   processPayPalPayment,
   processVisaPayment,
-  type PaymentMethod,
-} from "@/lib/payments"
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+} from "@/lib/payment"
 
 export default function ApartmentDetailPage() {
   const params = useParams()
@@ -52,6 +52,7 @@ export default function ApartmentDetailPage() {
   const { user, loading: authLoading } = useAuth()
   const { t } = useLanguage()
   const { toast } = useToast()
+  const supabase = createClient()
 
   const [apartment, setApartment] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -59,6 +60,7 @@ export default function ApartmentDetailPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("mtn_momo")
   const [processingPayment, setProcessingPayment] = useState(false)
   const [paymentSuccess, setPaymentSuccess] = useState(false)
+  const [isFavorited, setIsFavorited] = useState(false)
 
   // Payment form states
   const [phoneNumber, setPhoneNumber] = useState("")
@@ -69,7 +71,10 @@ export default function ApartmentDetailPage() {
 
   useEffect(() => {
     loadApartment()
-  }, [params.id])
+    if (user) {
+      checkFavoriteStatus()
+    }
+  }, [params.id, user])
 
   const loadApartment = async () => {
     try {
@@ -136,11 +141,72 @@ export default function ApartmentDetailPage() {
     }
   }
 
+  const checkFavoriteStatus = async () => {
+    if (!user) return
+
+    try {
+      const { data, error } = await supabase
+        .from("favorites")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("property_id", params.id)
+        .single()
+
+      if (data) {
+        setIsFavorited(true)
+      }
+    } catch (error) {
+      // Not favorited
+    }
+  }
+
+  const toggleFavorite = async () => {
+    if (!user) {
+      router.push(`/auth/signin?returnUrl=/apartments/${params.id}`)
+      return
+    }
+
+    try {
+      if (isFavorited) {
+        const { error } = await supabase.from("favorites").delete().eq("user_id", user.id).eq("property_id", params.id)
+
+        if (error) throw error
+
+        setIsFavorited(false)
+        toast({
+          title: "Removed from favorites",
+          description: "Property removed from your favorites",
+        })
+      } else {
+        const { error } = await supabase.from("favorites").insert({
+          user_id: user.id,
+          property_id: params.id,
+        })
+
+        if (error) throw error
+
+        setIsFavorited(true)
+        toast({
+          title: "Added to favorites",
+          description: "Property saved to your favorites",
+        })
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update favorites",
+        variant: "destructive",
+      })
+    }
+  }
+
   const handleBookingClick = () => {
     if (!user) {
       router.push(`/auth/signup?returnUrl=/apartments/${params.id}`)
       return
     }
+    // Navigate to booking flow
     setShowPaymentDialog(true)
   }
 
@@ -248,37 +314,18 @@ export default function ApartmentDetailPage() {
       <Header />
       <div className="container mx-auto px-4 py-8">
         {/* Image Gallery */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 rounded-xl overflow-hidden">
-          <div className="relative h-64 md:h-96">
-            <Image
-              src={apartment.images[0] || "/placeholder.svg"}
-              alt={apartment.title}
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {apartment.images.slice(1, 3).map((image: string, index: number) => (
-              <div key={index} className="relative h-32 md:h-[184px]">
-                <Image
-                  src={image || "/placeholder.svg"}
-                  alt={`${apartment.title} ${index + 2}`}
-                  fill
-                  className="object-cover rounded-lg"
-                />
-              </div>
-            ))}
-          </div>
+        <div className="mb-6 sm:mb-8">
+          <ImageCarousel images={apartment.images} title={apartment.title} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             <div>
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
                 <div className="flex-1">
-                  <h1 className="text-3xl font-bold mb-2">{apartment.title}</h1>
-                  <div className="flex items-center gap-4 text-muted-foreground">
+                  <h1 className="text-3xl font-bold mb-2 text-balance">{apartment.title}</h1>
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                       <span className="font-semibold">{apartment.rating}</span>
@@ -286,32 +333,36 @@ export default function ApartmentDetailPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
-                      <span>{apartment.location}</span>
+                      <span className="text-sm sm:text-base">{apartment.location}</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="icon">
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="icon">
-                    <Heart className="h-4 w-4" />
+                  <ShareButton
+                    url={`/apartments/${params.id}`}
+                    title={apartment.title}
+                    description={apartment.description}
+                    variant="outline"
+                    size="default"
+                  />
+                  <Button variant="outline" size="default" onClick={toggleFavorite}>
+                    <Heart className={`h-4 w-4 ${isFavorited ? "fill-red-500 text-red-500" : ""}`} />
                   </Button>
                 </div>
               </div>
 
-              <div className="flex gap-6 py-4 border-y">
+              <div className="flex flex-wrap gap-4 sm:gap-6 py-4 border-y">
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-muted-foreground" />
-                  <span>{apartment.guests} guests</span>
+                  <span className="text-sm sm:text-base">{apartment.guests} guests</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Bed className="h-5 w-5 text-muted-foreground" />
-                  <span>{apartment.bedrooms} bedrooms</span>
+                  <span className="text-sm sm:text-base">{apartment.bedrooms} bedrooms</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Bath className="h-5 w-5 text-muted-foreground" />
-                  <span>{apartment.bathrooms} bathrooms</span>
+                  <span className="text-sm sm:text-base">{apartment.bathrooms} bathrooms</span>
                 </div>
               </div>
             </div>

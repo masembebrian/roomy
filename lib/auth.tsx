@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, createContext, useContext, type ReactNode } from "react"
-import { supabase } from "./supabase"
+import { createClient } from "./supabase/client"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 
 interface User {
@@ -47,6 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const supabase = createClient()
+
     // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -72,6 +74,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const loadUserProfile = async (authUser: SupabaseUser) => {
+    const supabase = createClient()
+
     try {
       const { data, error } = await supabase.from("profiles").select("*").eq("id", authUser.id).single()
 
@@ -144,6 +148,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password?: string
     method: string
   }): Promise<boolean> => {
+    const supabase = createClient()
+
     try {
       if (credentials.method === "email" && credentials.email && credentials.password) {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -183,6 +189,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password?: string
     method: "email" | "google" | "phone"
   }): Promise<boolean> => {
+    const supabase = createClient()
+
     try {
       if (userData.method === "email" && userData.email && userData.password) {
         const { data, error } = await supabase.auth.signUp({
@@ -192,6 +200,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             data: {
               name: userData.name,
             },
+            emailRedirectTo:
+              process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`,
           },
         })
 
@@ -247,6 +257,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signInWithGoogle = async (): Promise<boolean> => {
+    const supabase = createClient()
+
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -268,6 +280,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
+    const supabase = createClient()
+
     try {
       await supabase.auth.signOut()
       setUser(null)
@@ -277,6 +291,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const updateProfile = async (updates: Partial<User>): Promise<boolean> => {
+    const supabase = createClient()
+
     try {
       if (!user) return false
 
@@ -311,6 +327,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const requestVerification = async (): Promise<boolean> => {
+    const supabase = createClient()
+
     try {
       if (!user) return false
 
@@ -332,6 +350,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const verifyPhone = async (phone: string, code: string): Promise<boolean> => {
+    const supabase = createClient()
+
     try {
       const { error } = await supabase.auth.verifyOtp({
         phone,

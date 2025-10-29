@@ -1,12 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Star, MapPin, Users, Wifi, Car, Coffee, Heart } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+import { useAuth } from "@/lib/auth"
+import { useToast } from "@/hooks/use-toast"
+import { PropertyListSkeleton } from "@/components/property-skeleton"
+import { ErrorState } from "@/components/error-state"
 
 interface Apartment {
   id: string
@@ -28,85 +33,6 @@ interface Apartment {
   featured: boolean
 }
 
-const mockApartments: Apartment[] = [
-  {
-    id: "1",
-    title: "Modern Apartment in Kampala City Center",
-    location: "Kampala, Central Region",
-    price: 85000,
-    rating: 4.8,
-    reviews: 124,
-    image: "/images/kampala-apartment.png",
-    amenities: ["wifi", "parking", "kitchen", "ac"],
-    guests: 4,
-    bedrooms: 2,
-    bathrooms: 2,
-    host: {
-      name: "Sarah M.",
-      image: "/images/host-sarah.png",
-      verified: true,
-    },
-    featured: true,
-  },
-  {
-    id: "2",
-    title: "Cozy Studio Near Entebbe Airport",
-    location: "Entebbe, Central Region",
-    price: 45000,
-    rating: 4.6,
-    reviews: 89,
-    image: "/images/entebbe-studio.png",
-    amenities: ["wifi", "kitchen", "ac"],
-    guests: 2,
-    bedrooms: 1,
-    bathrooms: 1,
-    host: {
-      name: "John K.",
-      image: "/images/host-john.png",
-      verified: true,
-    },
-    featured: true,
-  },
-  {
-    id: "3",
-    title: "Family Home with Garden in Jinja",
-    location: "Jinja, Eastern Region",
-    price: 120000,
-    rating: 4.9,
-    reviews: 67,
-    image: "/images/jinja-family-home.png",
-    amenities: ["wifi", "parking", "kitchen", "garden"],
-    guests: 6,
-    bedrooms: 3,
-    bathrooms: 2,
-    host: {
-      name: "Emily R.",
-      image: "/images/host-emily.png",
-      verified: true,
-    },
-    featured: true,
-  },
-  {
-    id: "4",
-    title: "Luxury Villa in Mukono",
-    location: "Mukono, Central Region",
-    price: 200000,
-    rating: 4.7,
-    reviews: 45,
-    image: "/images/mukono-villa.png",
-    amenities: ["wifi", "parking", "kitchen", "pool", "ac"],
-    guests: 8,
-    bedrooms: 4,
-    bathrooms: 3,
-    host: {
-      name: "David L.",
-      image: "/images/host-david.png",
-      verified: true,
-    },
-    featured: false,
-  },
-]
-
 const amenityIcons = {
   wifi: Wifi,
   parking: Car,
@@ -118,10 +44,128 @@ const amenityIcons = {
 
 export default function ApartmentList() {
   const [favorites, setFavorites] = useState<string[]>([])
-  const [apartments] = useState(mockApartments)
+  const [apartments, setApartments] = useState<Apartment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const { user } = useAuth()
+  const { toast } = useToast()
+  const supabase = createClient()
 
-  const toggleFavorite = (id: string) => {
-    setFavorites((prev) => (prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id]))
+  useEffect(() => {
+    loadProperties()
+    if (user) {
+      loadFavorites()
+    }
+  }, [user])
+
+  const loadProperties = async () => {
+    try {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from("properties")
+        .select(
+          `
+          *,
+          profiles:host_id (
+            name,
+            image,
+            verified
+          )
+        `,
+        )
+        .limit(8)
+
+      if (error) throw error
+
+      const formattedApartments: Apartment[] =
+        data?.map((property) => ({
+          id: property.id,
+          title: property.title,
+          location: property.location,
+          price: property.price,
+          rating: property.rating || 4.5,
+          reviews: property.review_count || 0,
+          image: property.images?.[0] || "/images/kampala-apartment.png",
+          amenities: property.amenities || ["wifi", "parking", "kitchen"],
+          guests: property.guests || 2,
+          bedrooms: property.bedrooms || 1,
+          bathrooms: property.bathrooms || 1,
+          host: {
+            name: property.profiles?.name || "Host",
+            image: property.profiles?.image || "/images/host-sarah.png",
+            verified: property.profiles?.verified || false,
+          },
+          featured: property.instant_book || false,
+        })) || []
+
+      setApartments(formattedApartments)
+    } catch (err) {
+      console.error("Error loading properties:", err)
+      setError("Failed to load properties")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadFavorites = async () => {
+    if (!user) return
+
+    try {
+      const { data, error } = await supabase.from("favorites").select("property_id").eq("user_id", user.id)
+
+      if (error) throw error
+
+      setFavorites(data?.map((fav) => fav.property_id) || [])
+    } catch (err) {
+      console.error("Error loading favorites:", err)
+    }
+  }
+
+  const toggleFavorite = async (id: string) => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to save favorites",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const isFavorited = favorites.includes(id)
+
+    try {
+      if (isFavorited) {
+        const { error } = await supabase.from("favorites").delete().eq("property_id", id).eq("user_id", user.id)
+
+        if (error) throw error
+
+        setFavorites((prev) => prev.filter((fav) => fav !== id))
+        toast({
+          title: "Removed from favorites",
+          description: "Property removed from your favorites",
+        })
+      } else {
+        const { error } = await supabase.from("favorites").insert({
+          property_id: id,
+          user_id: user.id,
+        })
+
+        if (error) throw error
+
+        setFavorites((prev) => [...prev, id])
+        toast({
+          title: "Added to favorites",
+          description: "Property saved to your favorites",
+        })
+      }
+    } catch (err) {
+      console.error("Error toggling favorite:", err)
+      toast({
+        title: "Error",
+        description: "Failed to update favorites",
+        variant: "destructive",
+      })
+    }
   }
 
   const formatPrice = (price: number) => {
@@ -130,6 +174,14 @@ export default function ApartmentList() {
       currency: "UGX",
       minimumFractionDigits: 0,
     }).format(price)
+  }
+
+  if (loading) {
+    return <PropertyListSkeleton count={8} />
+  }
+
+  if (error) {
+    return <ErrorState message={error} onRetry={loadProperties} showHomeButton={false} />
   }
 
   return (
@@ -241,5 +293,4 @@ export default function ApartmentList() {
   )
 }
 
-// Named export for compatibility
 export { ApartmentList }
