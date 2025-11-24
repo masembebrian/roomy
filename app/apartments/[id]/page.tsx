@@ -44,7 +44,7 @@ import {
   processAirtelMoneyPayment,
   processPayPalPayment,
   processVisaPayment,
-} from "@/lib/payment"
+} from "@/lib/payments"
 
 export default function ApartmentDetailPage() {
   const params = useParams()
