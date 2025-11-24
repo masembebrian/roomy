@@ -38,6 +38,8 @@ interface AuthContextType {
   updateProfile: (updates: Partial<User>) => Promise<boolean>
   requestVerification: () => Promise<boolean>
   verifyPhone: (phone: string, code: string) => Promise<boolean>
+  forgotPassword: (email: string) => Promise<boolean>
+  resetPassword: (password: string) => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -367,6 +369,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const forgotPassword = async (email: string): Promise<boolean> => {
+    const supabase = createClient()
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      })
+
+      if (error) throw error
+      return true
+    } catch (error) {
+      console.error("Forgot password error:", error)
+      return false
+    }
+  }
+
+  const resetPassword = async (password: string): Promise<boolean> => {
+    const supabase = createClient()
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: password,
+      })
+
+      if (error) throw error
+      return true
+    } catch (error) {
+      console.error("Reset password error:", error)
+      return false
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -379,6 +413,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updateProfile,
         requestVerification,
         verifyPhone,
+        forgotPassword,
+        resetPassword,
       }}
     >
       {children}

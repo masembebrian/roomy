@@ -177,6 +177,12 @@ export default function SignIn() {
                         onChange={(e) => setEmailData({ ...emailData, password: e.target.value })}
                         required
                       />
+                      <Link
+                        href="/auth/forgot-password"
+                        className="text-xs text-primary hover:underline inline-block mt-1"
+                      >
+                        Forgot password?
+                      </Link>
                     </div>
                     <Button type="submit" className="w-full" disabled={isLoading}>
                       {isLoading ? "Signing in..." : "Sign in"}
