@@ -111,23 +111,26 @@ export default function SignIn() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto">
-          <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
+      <main className="container mx-auto px-4 py-8 md:py-12">
+        <div className="max-w-md mx-auto w-full">
+          <Link
+            href="/"
+            className="inline-flex items-center text-xs md:text-sm text-muted-foreground hover:text-foreground mb-6"
+          >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to home
           </Link>
 
-          <Card>
+          <Card className="w-full">
             <CardHeader>
-              <CardTitle className="text-2xl">Welcome back</CardTitle>
-              <CardDescription>Sign in to your Roomy account</CardDescription>
+              <CardTitle className="text-xl md:text-2xl">Welcome back</CardTitle>
+              <CardDescription className="text-xs md:text-sm">Sign in to your Roomy account</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button
                 onClick={handleGoogleSignIn}
                 variant="outline"
-                className="w-full bg-transparent"
+                className="w-full bg-transparent text-sm md:text-base h-10 md:h-12"
                 disabled={isLoading}
               >
                 <Chrome className="w-4 h-4 mr-2" />
@@ -144,12 +147,12 @@ export default function SignIn() {
               </div>
 
               <Tabs defaultValue="email" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="email" className="flex items-center gap-2">
+                <TabsList className="grid w-full grid-cols-2 text-xs md:text-sm">
+                  <TabsTrigger value="email" className="flex items-center gap-1 md:gap-2">
                     <Mail className="w-4 h-4" />
                     <span className="hidden sm:inline">Email</span>
                   </TabsTrigger>
-                  <TabsTrigger value="phone" className="flex items-center gap-2">
+                  <TabsTrigger value="phone" className="flex items-center gap-1 md:gap-2">
                     <Phone className="w-4 h-4" />
                     <span className="hidden sm:inline">Phone</span>
                   </TabsTrigger>
@@ -158,7 +161,9 @@ export default function SignIn() {
                 <TabsContent value="email">
                   <form onSubmit={handleEmailSignIn} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email" className="text-sm md:text-base">
+                        Email
+                      </Label>
                       <Input
                         id="email"
                         type="email"
@@ -166,25 +171,29 @@ export default function SignIn() {
                         value={emailData.email}
                         onChange={(e) => setEmailData({ ...emailData, email: e.target.value })}
                         required
+                        className="text-sm md:text-base h-10 md:h-12"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="password">Password</Label>
+                      <Label htmlFor="password" className="text-sm md:text-base">
+                        Password
+                      </Label>
                       <Input
                         id="password"
                         type="password"
                         value={emailData.password}
                         onChange={(e) => setEmailData({ ...emailData, password: e.target.value })}
                         required
+                        className="text-sm md:text-base h-10 md:h-12"
                       />
                       <Link
                         href="/auth/forgot-password"
-                        className="text-xs text-primary hover:underline inline-block mt-1"
+                        className="text-xs md:text-sm text-primary hover:underline inline-block mt-1"
                       >
                         Forgot password?
                       </Link>
                     </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button type="submit" className="w-full text-sm md:text-base h-10 md:h-12" disabled={isLoading}>
                       {isLoading ? "Signing in..." : "Sign in"}
                     </Button>
                   </form>
@@ -193,7 +202,9 @@ export default function SignIn() {
                 <TabsContent value="phone">
                   <form onSubmit={handlePhoneSignIn} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
+                      <Label htmlFor="phone" className="text-sm md:text-base">
+                        Phone Number
+                      </Label>
                       <Input
                         id="phone"
                         type="tel"
@@ -201,26 +212,30 @@ export default function SignIn() {
                         value={phoneData.phone}
                         onChange={(e) => setPhoneData({ ...phoneData, phone: e.target.value })}
                         required
+                        className="text-sm md:text-base h-10 md:h-12"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone-password">Password</Label>
+                      <Label htmlFor="phone-password" className="text-sm md:text-base">
+                        Password
+                      </Label>
                       <Input
                         id="phone-password"
                         type="password"
                         value={phoneData.password}
                         onChange={(e) => setPhoneData({ ...phoneData, password: e.target.value })}
                         required
+                        className="text-sm md:text-base h-10 md:h-12"
                       />
                     </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button type="submit" className="w-full text-sm md:text-base h-10 md:h-12" disabled={isLoading}>
                       {isLoading ? "Signing in..." : "Sign in"}
                     </Button>
                   </form>
                 </TabsContent>
               </Tabs>
 
-              <div className="text-center text-sm">
+              <div className="text-center text-xs md:text-sm">
                 <span className="text-muted-foreground">Don't have an account? </span>
                 <Link href="/auth/signup" className="text-primary hover:underline">
                   Sign up

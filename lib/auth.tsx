@@ -153,33 +153,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabase = createClient()
 
     try {
+      let result
+
       if (credentials.method === "email" && credentials.email && credentials.password) {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        result = await supabase.auth.signInWithPassword({
           email: credentials.email,
           password: credentials.password,
         })
-
-        if (error) throw error
-        if (data.user) {
-          await loadUserProfile(data.user)
-          return true
-        }
       } else if (credentials.method === "phone" && credentials.phone && credentials.password) {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        result = await supabase.auth.signInWithPassword({
           phone: credentials.phone,
           password: credentials.password,
         })
+      } else {
+        console.error("[v0] Invalid credentials provided")
+        return false
+      }
 
-        if (error) throw error
-        if (data.user) {
-          await loadUserProfile(data.user)
-          return true
-        }
+      if (result.error) {
+        console.error("[v0] Sign in error:", result.error.message)
+        return false
+      }
+
+      if (result.data?.user) {
+        console.log("[v0] Sign in successful, loading profile")
+        await loadUserProfile(result.data.user)
+        return true
       }
 
       return false
     } catch (error) {
-      console.error("Sign in error:", error)
+      console.error("[v0] Sign in exception:", error)
       return false
     }
   }

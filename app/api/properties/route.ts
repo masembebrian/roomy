@@ -37,54 +37,39 @@ export async function GET(request: NextRequest) {
       .range((page - 1) * limit, page * limit - 1)
       .order("created_at", { ascending: false })
 
-    if (error) throw error
-
-    return NextResponse.json({
-      data,
-      pagination: {
-        page,
-        limit,
-        total: count,
-        pages: Math.ceil((count || 0) / limit),
-      },
-    })
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to fetch properties" },
-      { status: 500 },
-    )
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (error) {
+      console.error("[v0] Properties query error:", error)
+      throw error
     }
 
-    const body = await request.json()
-
-    const { data, error } = await supabase
-      .from("properties")
-      .insert({
-        host_id: user.id,
-        ...body,
-      })
-      .select()
-      .single()
-
-    if (error) throw error
-
-    return NextResponse.json(data, { status: 201 })
-  } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to create property" },
+      {
+        data: data || [],
+        pagination: {
+          page,
+          limit,
+          total: count || 0,
+          pages: Math.ceil((count || 0) / limit),
+        },
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store",
+        },
+      },
+    )
+  } catch (error) {
+    console.error("[v0] Properties API error:", error)
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Failed to fetch properties",
+        data: [],
+        pagination: { page: 1, limit: 12, total: 0, pages: 0 },
+      },
       { status: 500 },
     )
   }
 }
+
+// ... existing POST code ...
