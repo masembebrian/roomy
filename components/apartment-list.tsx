@@ -61,24 +61,16 @@ export default function ApartmentList() {
   const loadProperties = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from("properties")
-        .select(
-          `
-          *,
-          profiles:host_id (
-            name,
-            image,
-            verified
-          )
-        `,
-        )
-        .limit(8)
+      const response = await fetch("/api/properties")
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`)
+      }
+      const { data, error } = await response.json()
 
-      if (error) throw error
+      if (error) throw new Error(error)
 
       const formattedApartments: Apartment[] =
-        data?.map((property) => ({
+        data?.map((property: any) => ({
           id: property.id,
           title: property.title,
           location: property.location,
@@ -99,9 +91,10 @@ export default function ApartmentList() {
         })) || []
 
       setApartments(formattedApartments)
+      setError(null)
     } catch (err) {
-      console.error("Error loading properties:", err)
-      setError("Failed to load properties")
+      console.error("[v0] Error loading properties:", err)
+      setError("Failed to load properties. Please try again.")
     } finally {
       setLoading(false)
     }
