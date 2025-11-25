@@ -111,27 +111,22 @@ export default function ExplorePage() {
         .gte("price", filters.priceRange[0])
         .lte("price", filters.priceRange[1])
 
-      // Apply bedroom filter
-      if (filters.bedrooms.length > 0) {
+      if (filters.bedrooms && filters.bedrooms.length > 0) {
         query = query.in("bedrooms", filters.bedrooms)
       }
 
-      // Apply bathroom filter
-      if (filters.bathrooms.length > 0) {
+      if (filters.bathrooms && filters.bathrooms.length > 0) {
         query = query.in("bathrooms", filters.bathrooms)
       }
 
-      // Apply instant book filter
       if (filters.instantBook) {
         query = query.eq("instant_book", true)
       }
 
-      // Apply verified host filter
       if (filters.superhost) {
         query = query.eq("profiles.verified", true)
       }
 
-      // Apply sorting
       switch (sortBy) {
         case "price-low":
           query = query.order("price", { ascending: true })
@@ -151,11 +146,15 @@ export default function ExplorePage() {
 
       const { data, error } = await query
 
-      if (error) throw error
+      if (error) {
+        console.error("[v0] Supabase error:", error)
+        throw new Error(error.message || "Failed to load properties")
+      }
 
-      setProperties(data || [])
+      setProperties(Array.isArray(data) ? data.filter(Boolean) : [])
     } catch (err) {
-      console.error("Error loading properties:", err)
+      console.error("[v0] Error loading properties:", err instanceof Error ? err.message : String(err))
+      setProperties([])
     } finally {
       setLoading(false)
     }

@@ -29,10 +29,18 @@ export default function ResetPassword() {
       const supabase = createClient()
       const {
         data: { user },
+        error,
       } = await supabase.auth.getUser()
 
-      if (!user) {
-        setIsValid(false)
+      if (user) {
+        setIsValid(true)
+      } else {
+        const hash = window.location.hash
+        if (hash.includes("type=recovery")) {
+          setIsValid(true)
+        } else {
+          setIsValid(false)
+        }
       }
     }
 

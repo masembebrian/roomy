@@ -8,9 +8,18 @@ export async function GET() {
       data: { user },
     } = await supabase.auth.getUser()
 
-    // Check if user is admin (you'd implement proper admin role checking in production)
-    if (!user || user.email !== "admin@roomy.ug") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { data: userProfile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
+
+    if (profileError || userProfile?.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 })
     }
 
     const [usersData, propertiesData, bookingsData, paymentsData] = await Promise.all([

@@ -30,14 +30,38 @@ export default function AdminPanel() {
   const router = useRouter()
   const [adminData, setAdminData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!user || user.id !== "admin-user-id") {
-      router.push("/")
-      return
+    const checkAdminAccess = async () => {
+      if (!user) {
+        router.push("/auth/signin")
+        return
+      }
+
+      // Fetch user profile to check role
+      try {
+        const response = await fetch(`/api/profile/${user.id}`)
+        const data = await response.json()
+
+        if (data.role === "admin") {
+          setIsAdmin(true)
+          setUserRole(data.role)
+          loadAdminData()
+        } else {
+          router.push("/")
+        }
+      } catch (error) {
+        console.error("[v0] Error checking admin status:", error)
+        router.push("/")
+      } finally {
+        setLoading(false)
+      }
     }
-    loadAdminData()
-  }, [user])
+
+    checkAdminAccess()
+  }, [user, router])
 
   const loadAdminData = async () => {
     try {
@@ -45,9 +69,7 @@ export default function AdminPanel() {
       const data = await response.json()
       setAdminData(data)
     } catch (error) {
-      console.error("Error loading admin data:", error)
-    } finally {
-      setLoading(false)
+      console.error("[v0] Error loading admin data:", error)
     }
   }
 
@@ -62,7 +84,7 @@ export default function AdminPanel() {
     )
   }
 
-  if (!user || user.id !== "admin-user-id") {
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
