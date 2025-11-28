@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, lazy, Suspense } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Header } from "@/components/header"
@@ -9,11 +9,12 @@ import ChatBox from "@/components/chat-box"
 import { SearchBar } from "@/components/search-bar"
 import { ApartmentList } from "@/components/apartment-list"
 import { Testimonials } from "@/components/testimonials"
-import MouseImageTrail from "@/components/mouse-image-trail"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, ChevronRight, MapPin, Users, Home, Shield, Sparkles } from "lucide-react"
+
+const MouseImageTrail = lazy(() => import("@/components/mouse-image-trail"))
 
 const heroImages = [
   {
@@ -49,7 +50,11 @@ export default function HomePage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {isTrailEnabled && <MouseImageTrail />}
+      {isTrailEnabled && (
+        <Suspense fallback={null}>
+          <MouseImageTrail />
+        </Suspense>
+      )}
 
       {/* Hero Section with Carousel */}
       <section className="relative h-[500px] sm:h-[600px] lg:h-[700px] overflow-hidden" aria-label="Hero carousel">
