@@ -17,15 +17,15 @@
 ### 1.2 Configure Environment Variables
 In Vercel dashboard, go to Settings → Environment Variables and add:
 
-\`\`\`
+```
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_maps_key
+GOOGLE_MAPS_API_KEY=your_maps_key
 NEXT_PUBLIC_SITE_URL=https://roomy.ug
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
-\`\`\`
+```
 
 ### 1.3 Deploy
 - Click "Deploy"
@@ -51,26 +51,26 @@ Users can install your app directly from the browser:
 ## Step 3: Native App Deployment (Capacitor)
 
 ### 3.1 Setup Capacitor
-\`\`\`bash
+```bash
 npm install @capacitor/core @capacitor/cli
 npx cap init roomy com.roomy.app
 npm install @capacitor/ios @capacitor/android
-\`\`\`
+```
 
 ### 3.2 Build for Production
-\`\`\`bash
+```bash
 npm run build
 npx cap add ios
 npx cap add android
 npx cap copy
-\`\`\`
+```
 
 ### 3.3 iOS Deployment
 
 #### Build for iOS
-\`\`\`bash
+```bash
 npx cap open ios
-\`\`\`
+```
 
 #### In Xcode:
 1. Select target "Roomy"
@@ -95,14 +95,14 @@ npx cap open ios
 ### 3.4 Android Deployment
 
 #### Generate Signing Key
-\`\`\`bash
+```bash
 keytool -genkey -v -keystore roomy.keystore -keyalg RSA -keysize 2048 -validity 10000 -alias roomy
-\`\`\`
+```
 
 #### Build Release APK
-\`\`\`bash
+```bash
 npx cap open android
-\`\`\`
+```
 
 #### In Android Studio:
 1. Build → Generate Signed Bundle / APK
@@ -165,4 +165,3 @@ Your app automatically sends metrics to /api/metrics endpoint.
 
 ## Support
 For issues, contact support at roomy@example.com or create an issue on GitHub.
-\`\`\`

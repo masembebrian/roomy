@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -85,9 +85,24 @@ const apartments = [
 export default function Map() {
   const [selectedApartment, setSelectedApartment] = useState<(typeof apartments)[0] | null>(null)
   const [map, setMap] = useState<any | null>(null)
+  const [mapApiKey, setMapApiKey] = useState<string>("")
+
+  useEffect(() => {
+    const fetchApiKey = async () => {
+      try {
+        const response = await fetch("/api/maps/key")
+        const data = await response.json()
+        setMapApiKey(data.key)
+      } catch (error) {
+        console.error("Failed to fetch maps API key:", error)
+      }
+    }
+
+    fetchApiKey()
+  }, [])
 
   const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+    googleMapsApiKey: mapApiKey,
     libraries: ["places"],
   })
 
@@ -111,7 +126,7 @@ export default function Map() {
     )
   }
 
-  if (!isLoaded) {
+  if (!isLoaded || !mapApiKey) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-muted rounded-lg animate-pulse">
         <div className="text-center">
