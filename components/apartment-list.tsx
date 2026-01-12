@@ -61,13 +61,32 @@ export default function ApartmentList() {
   const loadProperties = async () => {
     try {
       setLoading(true)
+      setError(null)
       const response = await fetch("/api/properties")
+
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`)
       }
-      const { data, error } = await response.json()
 
-      if (error) throw new Error(error)
+      const text = await response.text()
+
+      if (!text) {
+        throw new Error("Empty response from API")
+      }
+
+      let jsonResponse
+      try {
+        jsonResponse = JSON.parse(text)
+      } catch (parseError) {
+        console.error("[v0] Failed to parse response:", text)
+        throw new Error("Invalid response format from API")
+      }
+
+      const { data, error } = jsonResponse
+
+      if (error) {
+        throw new Error(error)
+      }
 
       const formattedApartments: Apartment[] =
         data?.map((property: any) => ({
@@ -91,10 +110,9 @@ export default function ApartmentList() {
         })) || []
 
       setApartments(formattedApartments)
-      setError(null)
     } catch (err) {
       console.error("[v0] Error loading properties:", err)
-      setError("Failed to load properties. Please try again.")
+      setError(err instanceof Error ? err.message : "Failed to load properties. Please try again.")
     } finally {
       setLoading(false)
     }

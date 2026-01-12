@@ -71,6 +71,9 @@ const trendingSearches = [
   "University area",
 ]
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default function ExplorePage() {
   const [viewMode, setViewMode] = useState<"list" | "map">("list")
   const [sortBy, setSortBy] = useState("recommended")

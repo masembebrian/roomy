@@ -39,7 +39,14 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error("[v0] Properties query error:", error)
-      throw error
+      return NextResponse.json(
+        {
+          error: error.message || "Failed to fetch properties",
+          data: [],
+          pagination: { page: 1, limit: 12, total: 0, pages: 0 },
+        },
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      )
     }
 
     return NextResponse.json(
@@ -61,13 +68,14 @@ export async function GET(request: NextRequest) {
     )
   } catch (error) {
     console.error("[v0] Properties API error:", error)
+    const errorMessage = error instanceof Error ? error.message : "Failed to fetch properties"
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Failed to fetch properties",
+        error: errorMessage,
         data: [],
         pagination: { page: 1, limit: 12, total: 0, pages: 0 },
       },
-      { status: 500 },
+      { status: 500, headers: { "Content-Type": "application/json" } },
     )
   }
 }
