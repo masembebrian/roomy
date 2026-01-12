@@ -42,7 +42,7 @@ const amenityIcons = {
   garden: "🌿",
 }
 
-export default function ApartmentList() {
+export function ApartmentList() {
   const [favorites, setFavorites] = useState<string[]>([])
   const [apartments, setApartments] = useState<Apartment[]>([])
   const [loading, setLoading] = useState(true)
@@ -303,5 +303,3 @@ export default function ApartmentList() {
     </div>
   )
 }
-
-export { ApartmentList }
