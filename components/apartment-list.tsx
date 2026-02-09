@@ -62,57 +62,73 @@ export function ApartmentList() {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch("/api/properties")
+
+      const response = await fetch("/api/properties", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      })
 
       if (!response.ok) {
+        console.error("[v0] API responded with status:", response.status)
         throw new Error(`API error: ${response.status}`)
       }
 
-      const text = await response.text()
-
-      if (!text) {
-        throw new Error("Empty response from API")
-      }
-
-      let jsonResponse
-      try {
-        jsonResponse = JSON.parse(text)
-      } catch (parseError) {
-        console.error("[v0] Failed to parse response:", text)
+      const contentType = response.headers.get("content-type")
+      if (!contentType?.includes("application/json")) {
+        console.error("[v0] Invalid content type:", contentType)
         throw new Error("Invalid response format from API")
       }
 
-      const { data, error } = jsonResponse
+      const jsonResponse = await response.json()
 
-      if (error) {
-        throw new Error(error)
+      if (!jsonResponse || typeof jsonResponse !== "object") {
+        throw new Error("Invalid response structure from API")
       }
 
-      const formattedApartments: Apartment[] =
-        data?.map((property: any) => ({
-          id: property.id,
-          title: property.title,
-          location: property.location,
-          price: property.price,
-          rating: property.rating || 4.5,
-          reviews: property.review_count || 0,
-          image: property.images?.[0] || "/images/kampala-apartment.png",
-          amenities: property.amenities || ["wifi", "parking", "kitchen"],
-          guests: property.guests || 2,
-          bedrooms: property.bedrooms || 1,
-          bathrooms: property.bathrooms || 1,
+      const { data = [], error } = jsonResponse
+
+      if (error) {
+        console.warn("[v0] API returned error:", error)
+      }
+
+      if (!Array.isArray(data)) {
+        console.warn("[v0] Data is not an array, received:", typeof data)
+        setApartments([])
+        setLoading(false)
+        return
+      }
+
+      const formattedApartments: Apartment[] = data
+        .filter((property): property is Record<string, any> => Boolean(property && property.id))
+        .map((property) => ({
+          id: property.id || "",
+          title: property.title || "Untitled",
+          location: property.location || "Unknown",
+          price: Number(property.price) || 0,
+          rating: Number(property.rating) || 4.5,
+          reviews: Number(property.review_count) || 0,
+          image: Array.isArray(property.images) && property.images[0] ? property.images[0] : "/images/kampala-apartment.png",
+          amenities: Array.isArray(property.amenities) ? property.amenities : ["wifi", "parking"],
+          guests: Number(property.guests) || 2,
+          bedrooms: Number(property.bedrooms) || 1,
+          bathrooms: Number(property.bathrooms) || 1,
           host: {
             name: property.profiles?.name || "Host",
             image: property.profiles?.image || "/images/host-sarah.png",
-            verified: property.profiles?.verified || false,
+            verified: Boolean(property.profiles?.verified),
           },
-          featured: property.instant_book || false,
-        })) || []
+          featured: Boolean(property.instant_book),
+        }))
 
       setApartments(formattedApartments)
     } catch (err) {
-      console.error("[v0] Error loading properties:", err)
-      setError(err instanceof Error ? err.message : "Failed to load properties. Please try again.")
+      const errorMessage = err instanceof Error ? err.message : "Failed to load properties. Please try again."
+      console.error("[v0] Error loading properties:", errorMessage)
+      setError(errorMessage)
+      setApartments([])
     } finally {
       setLoading(false)
     }

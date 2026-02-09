@@ -11,26 +11,61 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get("maxPrice")
     const bedrooms = searchParams.get("bedrooms")
     const guests = searchParams.get("guests")
-    const amenities = searchParams.getAll("amenities")
-    const page = Number.parseInt(searchParams.get("page") || "1")
-    const limit = Number.parseInt(searchParams.get("limit") || "12")
+    const page = Math.max(1, Number.parseInt(searchParams.get("page") || "1"))
+    const limit = Math.max(1, Number.parseInt(searchParams.get("limit") || "12"))
 
-    let query = supabase.from("properties").select("*", { count: "exact" })
+    let query = supabase
+      .from("properties")
+      .select(
+        `
+        id,
+        title,
+        location,
+        price,
+        rating,
+        review_count,
+        images,
+        amenities,
+        guests,
+        bedrooms,
+        bathrooms,
+        instant_book,
+        profiles:host_id (
+          id,
+          name,
+          image,
+          verified
+        )
+      `,
+        { count: "exact" },
+      )
 
     if (location) {
       query = query.ilike("location", `%${location}%`)
     }
     if (minPrice) {
-      query = query.gte("price", Number.parseFloat(minPrice))
+      const price = Number.parseFloat(minPrice)
+      if (!Number.isNaN(price)) {
+        query = query.gte("price", price)
+      }
     }
     if (maxPrice) {
-      query = query.lte("price", Number.parseFloat(maxPrice))
+      const price = Number.parseFloat(maxPrice)
+      if (!Number.isNaN(price)) {
+        query = query.lte("price", price)
+      }
     }
     if (bedrooms) {
-      query = query.gte("bedrooms", Number.parseInt(bedrooms))
+      const bd = Number.parseInt(bedrooms)
+      if (!Number.isNaN(bd)) {
+        query = query.gte("bedrooms", bd)
+      }
     }
     if (guests) {
-      query = query.gte("guests", Number.parseInt(guests))
+      const g = Number.parseInt(guests)
+      if (!Number.isNaN(g)) {
+        query = query.gte("guests", g)
+      }
     }
 
     const { data, error, count } = await query
@@ -38,20 +73,32 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false })
 
     if (error) {
-      console.error("[v0] Properties query error:", error)
+      console.error("[v0] Properties query error:", error.message)
       return NextResponse.json(
         {
-          error: error.message || "Failed to fetch properties",
           data: [],
-          pagination: { page: 1, limit: 12, total: 0, pages: 0 },
+          pagination: { page, limit, total: 0, pages: 0 },
+          error: error.message,
         },
-        { status: 500, headers: { "Content-Type": "application/json" } },
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
       )
     }
 
+    const safeData = Array.isArray(data)
+      ? data
+          .filter((item) => item && typeof item === "object")
+          .map((item) => ({
+            ...item,
+            profiles: item.profiles || null,
+          }))
+      : []
+
     return NextResponse.json(
       {
-        data: data || [],
+        data: safeData,
         pagination: {
           page,
           limit,
@@ -60,24 +107,25 @@ export async function GET(request: NextRequest) {
         },
       },
       {
+        status: 200,
         headers: {
           "Content-Type": "application/json",
-          "Cache-Control": "no-store",
+          "Cache-Control": "no-store, no-cache, must-revalidate",
         },
       },
     )
   } catch (error) {
-    console.error("[v0] Properties API error:", error)
-    const errorMessage = error instanceof Error ? error.message : "Failed to fetch properties"
+    console.error("[v0] Properties API error:", error instanceof Error ? error.message : String(error))
     return NextResponse.json(
       {
-        error: errorMessage,
         data: [],
         pagination: { page: 1, limit: 12, total: 0, pages: 0 },
+        error: "Failed to fetch properties",
       },
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
     )
   }
 }
-
-// ... existing POST code ...
