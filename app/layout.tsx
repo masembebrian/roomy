@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/lib/auth"
 import { LanguageProvider } from "@/lib/i18n/context"
 import { Toaster } from "@/components/ui/toaster"
+import { ErrorBoundary } from "@/components/error-boundary"
+import { AsyncErrorBoundary } from "@/components/async-error-boundary"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -106,14 +108,18 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://maps.googleapis.com" />
       </head>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <AuthProvider>
-            <LanguageProvider>
-              {children}
-              <Toaster />
-            </LanguageProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <ErrorBoundary>
+          <AsyncErrorBoundary>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+              <AuthProvider>
+                <LanguageProvider>
+                  {children}
+                  <Toaster />
+                </LanguageProvider>
+              </AuthProvider>
+            </ThemeProvider>
+          </AsyncErrorBoundary>
+        </ErrorBoundary>
       </body>
     </html>
   )

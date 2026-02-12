@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
@@ -12,6 +12,8 @@ import { useAuth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { PropertyListSkeleton } from "@/components/property-skeleton"
 import { ErrorState } from "@/components/error-state"
+import { requestCache } from "@/lib/cache"
+import { logger, measurePerformanceAsync } from "@/lib/logger"
 
 interface Apartment {
   id: string
@@ -58,44 +60,55 @@ export function ApartmentList() {
     }
   }, [user])
 
-  const loadProperties = async () => {
+  const loadProperties = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch("/api/properties", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-store",
-      })
+      const fetchData = async () => {
+        const response = await fetch("/api/properties", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
+        })
 
-      if (!response.ok) {
-        console.error("[v0] API responded with status:", response.status)
-        throw new Error(`API error: ${response.status}`)
+        if (!response.ok) {
+          logger.error(`API responded with status: ${response.status}`, new Error("API Error"))
+          throw new Error(`API error: ${response.status}`)
+        }
+
+        const contentType = response.headers.get("content-type")
+        if (!contentType?.includes("application/json")) {
+          logger.error("Invalid content type", new Error("Invalid response format"))
+          throw new Error("Invalid response format from API")
+        }
+
+        const jsonResponse = await response.json()
+
+        if (!jsonResponse || typeof jsonResponse !== "object") {
+          throw new Error("Invalid response structure from API")
+        }
+
+        return jsonResponse
       }
 
-      const contentType = response.headers.get("content-type")
-      if (!contentType?.includes("application/json")) {
-        console.error("[v0] Invalid content type:", contentType)
-        throw new Error("Invalid response format from API")
-      }
-
-      const jsonResponse = await response.json()
-
-      if (!jsonResponse || typeof jsonResponse !== "object") {
-        throw new Error("Invalid response structure from API")
-      }
+      // Use request cache with 5 minute TTL
+      const jsonResponse = await requestCache.deduplicate(
+        "properties:list",
+        fetchData,
+        5 * 60 * 1000
+      )
 
       const { data = [], error } = jsonResponse
 
       if (error) {
-        console.warn("[v0] API returned error:", error)
+        logger.warn(`API returned error: ${error}`)
       }
 
       if (!Array.isArray(data)) {
-        console.warn("[v0] Data is not an array, received:", typeof data)
+        logger.warn(`Data is not an array, received: ${typeof data}`)
         setApartments([])
         setLoading(false)
         return
@@ -124,15 +137,16 @@ export function ApartmentList() {
         }))
 
       setApartments(formattedApartments)
+      logger.info(`Loaded ${formattedApartments.length} properties`)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to load properties. Please try again."
-      console.error("[v0] Error loading properties:", errorMessage)
+      logger.error("Error loading properties", err instanceof Error ? err : new Error(String(err)))
       setError(errorMessage)
       setApartments([])
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   const loadFavorites = async () => {
     if (!user) return
