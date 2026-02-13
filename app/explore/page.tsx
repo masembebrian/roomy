@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Header } from "@/components/header"
 import { SearchBar } from "@/components/search-bar"
 import { ApartmentList } from "@/components/apartment-list"
@@ -11,56 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MapIcon, List, TrendingUp } from "lucide-react"
 import Footer from "@/components/footer"
 import { PropertyFilters, type FilterOptions } from "@/components/property-filters"
-import { createClient } from "@/lib/supabase/client"
-import { PropertyListSkeleton } from "@/components/property-skeleton"
-
-const popularDestinations = [
-  {
-    name: "Kampala",
-    properties: 150,
-    image: "/placeholder.svg?height=200&width=300",
-    description: "Uganda's vibrant capital city",
-  },
-  {
-    name: "Entebbe",
-    properties: 85,
-    image: "/placeholder.svg?height=200&width=300",
-    description: "Gateway to Uganda, near the airport",
-  },
-  {
-    name: "Jinja",
-    properties: 67,
-    image: "/placeholder.svg?height=200&width=300",
-    description: "Adventure capital of East Africa",
-  },
-  {
-    name: "Mbarara",
-    properties: 45,
-    image: "/placeholder.svg?height=200&width=300",
-    description: "Heart of Uganda's cattle corridor",
-  },
-  {
-    name: "Fort Portal",
-    properties: 38,
-    image: "/placeholder.svg?height=200&width=300",
-    description: "Gateway to the mountains",
-  },
-  {
-    name: "Gulu",
-    properties: 29,
-    image: "/placeholder.svg?height=200&width=300",
-    description: "Northern Uganda's largest city",
-  },
-]
-
-const propertyTypes = [
-  { name: "Apartments", count: 245, icon: "🏢" },
-  { name: "Houses", count: 189, icon: "🏠" },
-  { name: "Villas", count: 67, icon: "🏖️" },
-  { name: "Studios", count: 123, icon: "🏠" },
-  { name: "Cottages", count: 45, icon: "🏡" },
-  { name: "Penthouses", count: 23, icon: "🏙️" },
-]
 
 const trendingSearches = [
   "Kampala city center",
@@ -72,12 +22,11 @@ const trendingSearches = [
 ]
 
 export const dynamic = "force-dynamic"
+export const revalidate = false
 
 export default function ExplorePage() {
   const [viewMode, setViewMode] = useState<"list" | "map">("list")
   const [sortBy, setSortBy] = useState("recommended")
-  const [properties, setProperties] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
 
   const [filters, setFilters] = useState<FilterOptions>({
     priceRange: [0, 500000],
@@ -88,79 +37,6 @@ export default function ExplorePage() {
     instantBook: false,
     superhost: false,
   })
-
-  const supabase = createClient()
-
-  useEffect(() => {
-    loadProperties()
-  }, [filters, sortBy])
-
-  const loadProperties = async () => {
-    try {
-      setLoading(true)
-      let query = supabase
-        .from("properties")
-        .select(
-          `
-          *,
-          profiles:host_id (
-            name,
-            image,
-            verified
-          )
-        `,
-        )
-        .gte("price", filters.priceRange[0])
-        .lte("price", filters.priceRange[1])
-
-      if (filters.bedrooms && filters.bedrooms.length > 0) {
-        query = query.in("bedrooms", filters.bedrooms)
-      }
-
-      if (filters.bathrooms && filters.bathrooms.length > 0) {
-        query = query.in("bathrooms", filters.bathrooms)
-      }
-
-      if (filters.instantBook) {
-        query = query.eq("instant_book", true)
-      }
-
-      if (filters.superhost) {
-        query = query.eq("profiles.verified", true)
-      }
-
-      switch (sortBy) {
-        case "price-low":
-          query = query.order("price", { ascending: true })
-          break
-        case "price-high":
-          query = query.order("price", { ascending: false })
-          break
-        case "rating":
-          query = query.order("rating", { ascending: false })
-          break
-        case "newest":
-          query = query.order("created_at", { ascending: false })
-          break
-        default:
-          query = query.order("rating", { ascending: false })
-      }
-
-      const { data, error } = await query
-
-      if (error) {
-        console.error("[v0] Supabase error:", error)
-        throw new Error(error.message || "Failed to load properties")
-      }
-
-      setProperties(Array.isArray(data) ? data.filter(Boolean) : [])
-    } catch (err) {
-      console.error("[v0] Error loading properties:", err instanceof Error ? err.message : String(err))
-      setProperties([])
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const clearFilters = () => {
     setFilters({
@@ -218,7 +94,7 @@ export default function ExplorePage() {
         {/* Main Content */}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold">{properties.length} Properties Available</h2>
+            <h2 className="text-xl sm:text-2xl font-bold">Properties Available</h2>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <PropertyFilters filters={filters} onFiltersChange={setFilters} onClearFilters={clearFilters} />
 
@@ -258,9 +134,7 @@ export default function ExplorePage() {
             </div>
           </div>
 
-          {loading ? (
-            <PropertyListSkeleton count={8} />
-          ) : viewMode === "list" ? (
+          {viewMode === "list" ? (
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 sm:gap-8">
               <ApartmentList />
               <div className="hidden lg:block sticky top-8 h-[calc(100vh-6rem)]">

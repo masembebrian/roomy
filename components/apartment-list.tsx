@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
@@ -12,6 +12,8 @@ import { useAuth } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { PropertyListSkeleton } from "@/components/property-skeleton"
 import { ErrorState } from "@/components/error-state"
+import { requestCache } from "@/lib/cache"
+import { logger, measurePerformanceAsync } from "@/lib/logger"
 
 interface Apartment {
   id: string
@@ -58,65 +60,93 @@ export function ApartmentList() {
     }
   }, [user])
 
-  const loadProperties = async () => {
+  const loadProperties = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch("/api/properties")
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`)
+      const fetchData = async () => {
+        const response = await fetch("/api/properties", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
+        })
+
+        if (!response.ok) {
+          logger.error(`API responded with status: ${response.status}`, new Error("API Error"))
+          throw new Error(`API error: ${response.status}`)
+        }
+
+        const contentType = response.headers.get("content-type")
+        if (!contentType?.includes("application/json")) {
+          logger.error("Invalid content type", new Error("Invalid response format"))
+          throw new Error("Invalid response format from API")
+        }
+
+        const jsonResponse = await response.json()
+
+        if (!jsonResponse || typeof jsonResponse !== "object") {
+          throw new Error("Invalid response structure from API")
+        }
+
+        return jsonResponse
       }
 
-      const text = await response.text()
+      // Use request cache with 5 minute TTL
+      const jsonResponse = await requestCache.deduplicate(
+        "properties:list",
+        fetchData,
+        5 * 60 * 1000
+      )
 
-      if (!text) {
-        throw new Error("Empty response from API")
-      }
-
-      let jsonResponse
-      try {
-        jsonResponse = JSON.parse(text)
-      } catch (parseError) {
-        console.error("[v0] Failed to parse response:", text)
-        throw new Error("Invalid response format from API")
-      }
-
-      const { data, error } = jsonResponse
+      const { data = [], error } = jsonResponse
 
       if (error) {
-        throw new Error(error)
+        logger.warn(`API returned error: ${error}`)
       }
 
-      const formattedApartments: Apartment[] =
-        data?.map((property: any) => ({
-          id: property.id,
-          title: property.title,
-          location: property.location,
-          price: property.price,
-          rating: property.rating || 4.5,
-          reviews: property.review_count || 0,
-          image: property.images?.[0] || "/images/kampala-apartment.png",
-          amenities: property.amenities || ["wifi", "parking", "kitchen"],
-          guests: property.guests || 2,
-          bedrooms: property.bedrooms || 1,
-          bathrooms: property.bathrooms || 1,
+      if (!Array.isArray(data)) {
+        logger.warn(`Data is not an array, received: ${typeof data}`)
+        setApartments([])
+        setLoading(false)
+        return
+      }
+
+      const formattedApartments: Apartment[] = data
+        .filter((property): property is Record<string, any> => Boolean(property && property.id))
+        .map((property) => ({
+          id: property.id || "",
+          title: property.title || "Untitled",
+          location: property.location || "Unknown",
+          price: Number(property.price) || 0,
+          rating: Number(property.rating) || 4.5,
+          reviews: Number(property.review_count) || 0,
+          image: Array.isArray(property.images) && property.images[0] ? property.images[0] : "/images/kampala-apartment.png",
+          amenities: Array.isArray(property.amenities) ? property.amenities : ["wifi", "parking"],
+          guests: Number(property.guests) || 2,
+          bedrooms: Number(property.bedrooms) || 1,
+          bathrooms: Number(property.bathrooms) || 1,
           host: {
             name: property.profiles?.name || "Host",
             image: property.profiles?.image || "/images/host-sarah.png",
-            verified: property.profiles?.verified || false,
+            verified: Boolean(property.profiles?.verified),
           },
-          featured: property.instant_book || false,
-        })) || []
+          featured: Boolean(property.instant_book),
+        }))
 
       setApartments(formattedApartments)
+      logger.info(`Loaded ${formattedApartments.length} properties`)
     } catch (err) {
-      console.error("[v0] Error loading properties:", err)
-      setError(err instanceof Error ? err.message : "Failed to load properties. Please try again.")
+      const errorMessage = err instanceof Error ? err.message : "Failed to load properties. Please try again."
+      logger.error("Error loading properties", err instanceof Error ? err : new Error(String(err)))
+      setError(errorMessage)
+      setApartments([])
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   const loadFavorites = async () => {
     if (!user) return

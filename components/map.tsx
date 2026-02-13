@@ -82,27 +82,42 @@ const apartments = [
   },
 ]
 
-export default function Map() {
+interface MapProps {
+  apiKey?: string
+}
+
+export default function Map({ apiKey }: MapProps) {
   const [selectedApartment, setSelectedApartment] = useState<(typeof apartments)[0] | null>(null)
   const [map, setMap] = useState<any | null>(null)
-  const [mapApiKey, setMapApiKey] = useState<string>("")
+  const [fetchedApiKey, setFetchedApiKey] = useState<string>(apiKey || "")
+  const [keyLoaded, setKeyLoaded] = useState(!!apiKey)
 
   useEffect(() => {
+    if (apiKey) {
+      setFetchedApiKey(apiKey)
+      setKeyLoaded(true)
+      return
+    }
+
     const fetchApiKey = async () => {
       try {
         const response = await fetch("/api/maps/key")
         const data = await response.json()
-        setMapApiKey(data.key)
+        if (data?.key) {
+          setFetchedApiKey(data.key)
+          setKeyLoaded(true)
+        }
       } catch (error) {
-        console.error("Failed to fetch maps API key:", error)
+        console.error("[v0] Failed to fetch maps API key:", error)
+        setKeyLoaded(true)
       }
     }
 
     fetchApiKey()
-  }, [])
+  }, [apiKey])
 
   const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: mapApiKey,
+    googleMapsApiKey: fetchedApiKey,
     libraries: ["places"],
   })
 
@@ -120,17 +135,17 @@ export default function Map() {
         <div className="text-center">
           <MapPin className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground">Unable to load map</p>
-          <p className="text-sm text-muted-foreground">Please check your internet connection</p>
+          <p className="text-sm text-muted-foreground">Please check your connection</p>
         </div>
       </div>
     )
   }
 
-  if (!isLoaded || !mapApiKey) {
+  if (!isLoaded || !keyLoaded || !fetchedApiKey) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-muted rounded-lg animate-pulse">
+      <div className="w-full h-full flex items-center justify-center bg-muted rounded-lg">
         <div className="text-center">
-          <div className="w-12 h-12 bg-muted-foreground/20 rounded-full mx-auto mb-4"></div>
+          <div className="w-12 h-12 bg-muted-foreground/20 rounded-full mx-auto mb-4 animate-pulse"></div>
           <p className="text-muted-foreground">Loading map...</p>
         </div>
       </div>
